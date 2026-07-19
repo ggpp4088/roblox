@@ -1,4 +1,52 @@
 -- ============================================
+-- 清除之前执行的相同脚本
+-- ============================================
+
+-- 1. 清除旧UI
+local playerGui = game:GetService("Players").LocalPlayer:FindFirstChild("PlayerGui")
+if playerGui then
+    local oldUI = playerGui:FindFirstChild("AimbotUI")
+    if oldUI then oldUI:Destroy() end
+end
+
+-- 2. 清除旧Drawing
+for _, v in pairs(getgenv()) do
+    if type(v) == "table" and v.Destroy then
+        pcall(v.Destroy, v)
+    end
+end
+
+getgenv()._drawings = getgenv()._drawings or {}
+for _, drawing in ipairs(getgenv()._drawings) do
+    pcall(function() drawing:Remove() end)
+end
+getgenv()._drawings = {}
+
+-- 3. 清除旧ESP
+for _, player in pairs(game:GetService("Players"):GetPlayers()) do
+    if player ~= game:GetService("Players").LocalPlayer and player.Character then
+        local h = player.Character:FindFirstChild("Totally NOT Esp")
+        local i = player.Character:FindFirstChild("Icon")
+        local hb = player.Character:FindFirstChild("HealthBar")
+        if h then pcall(h.Destroy, h) end
+        if i then pcall(i.Destroy, i) end
+        if hb then pcall(hb.Destroy, hb) end
+    end
+end
+
+-- 4. 重置全局变量
+getgenv().Toggle = true
+getgenv().TC = false
+
+-- 5. 清除旧连接
+if getgenv()._connections then
+    for _, conn in ipairs(getgenv()._connections) do
+        pcall(conn.Disconnect, conn)
+    end
+end
+getgenv()._connections = {}
+
+-- ============================================
 -- 服务
 -- ============================================
 local Players = game:GetService("Players")
@@ -14,11 +62,9 @@ local Camera = Workspace.CurrentCamera
 local Mouse = LocalPlayer:GetMouse()
 
 -- ============================================
--- 全局设置（兼容原文档的 getgenv 方式）
+-- 全局设置
 -- ============================================
-getgenv().Toggle = true      -- ESP总开关
-getgenv().TC = false         -- 队伍检测开关
-local PlayerName = "DisplayName"  -- "DisplayName" 或 "Name"
+local PlayerName = "DisplayName"
 
 local Settings = {
     Enabled = false,
@@ -34,7 +80,12 @@ local Settings = {
     UIVisible = true,
     HoldToLock = false,
     ShowCrosshair = true,
-    CrosshairColor = Color3.fromRGB(255, 255, 255)
+    CrosshairColor = Color3.fromRGB(255, 255, 255),
+    -- 新增：锁定模式
+    -- "nearest" = 距离最近的玩家
+    -- "specified" = 指定的玩家
+    LockMode = "nearest",
+    SpecifiedTarget = nil  -- 指定的玩家名称
 }
 
 local lockedTarget = nil
@@ -42,13 +93,12 @@ local isLocking = false
 local holdLocking = false
 
 -- ============================================
--- ⭐ 新增：高亮指定玩家（输入名字）
+-- 高亮指定玩家
 -- ============================================
 local highlightedPlayerName = nil
-local HIGHLIGHT_COLOR = Color3.fromRGB(255, 215, 0)  -- 金色
+local HIGHLIGHT_COLOR = Color3.fromRGB(255, 215, 0)
 local HIGHLIGHT_TRANSPARENCY = 0.2
 
--- 高亮指定玩家
 local function highlightSpecificPlayer(playerName)
     if not playerName or playerName == "" then
         highlightedPlayerName = nil
@@ -71,7 +121,6 @@ end
 -- ============================================
 -- 工具函数
 -- ============================================
-
 local function isEnemy(player)
     if not Settings.TeamCheck then return true end
     if LocalPlayer.Team == nil or player.Team == nil then return true end
@@ -116,6 +165,36 @@ local function getClosestPlayer()
     return closestPlayer
 end
 
+-- 获取指定玩家（通过名称）
+local function getSpecifiedPlayer(playerName)
+    if not playerName or playerName == "" then return nil end
+    
+    for _, player in pairs(Players:GetPlayers()) do
+        if player.Name:lower() == playerName:lower() or player.DisplayName:lower() == playerName:lower() then
+            -- 检查是否有效目标
+            if player ~= LocalPlayer 
+               and player.Character 
+               and player.Character:FindFirstChild("Humanoid") 
+               and player.Character.Humanoid.Health > 0
+               and player.Character:FindFirstChild(Settings.AimPart) 
+               and isEnemy(player) then
+                return player
+            end
+        end
+    end
+    return nil
+end
+
+-- 根据锁定模式获取目标
+local function getLockTarget()
+    if Settings.LockMode == "nearest" then
+        return getClosestPlayer()
+    elseif Settings.LockMode == "specified" then
+        return getSpecifiedPlayer(Settings.SpecifiedTarget)
+    end
+    return nil
+end
+
 -- ============================================
 -- FOV 圆圈绘制
 -- ============================================
@@ -126,6 +205,7 @@ FOVCircle.NumSides = 60
 FOVCircle.Color = Color3.fromRGB(255, 50, 50)
 FOVCircle.Transparency = 0.5
 FOVCircle.Filled = false
+table.insert(getgenv()._drawings, FOVCircle)
 
 -- ============================================
 -- 中心准星线条
@@ -141,6 +221,7 @@ for i = 1, 4 do
     crosshairLines[i].Color = Settings.CrosshairColor
     crosshairLines[i].Transparency = 1
     crosshairLines[i].Visible = true
+    table.insert(getgenv()._drawings, crosshairLines[i])
 end
 
 local function updateCrosshair()
@@ -172,7 +253,7 @@ local function updateCrosshair()
 end
 
 -- ============================================
--- ⭐ 修改：人物透视（ESP）- 增加高亮功能
+-- 人物透视（ESP）
 -- ============================================
 local function createESP(player)
     if not player.Character then return end
@@ -207,11 +288,16 @@ local function createESP(player)
     ESP.Enabled = true
     ESP.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 
-    -- ⭐ 判断是否是被高亮的玩家
+    -- 判断是否是被高亮的玩家或指定的目标
     if highlightedPlayerName and player.Name == highlightedPlayerName then
         ESP.FillColor = HIGHLIGHT_COLOR
         ESP.FillTransparency = HIGHLIGHT_TRANSPARENCY
         ESP.OutlineColor = HIGHLIGHT_COLOR
+        ESP.OutlineTransparency = 0
+    elseif Settings.SpecifiedTarget and (player.Name:lower() == Settings.SpecifiedTarget:lower() or player.DisplayName:lower() == Settings.SpecifiedTarget:lower()) then
+        ESP.FillColor = Color3.fromRGB(255, 100, 100)  -- 红色表示指定目标
+        ESP.FillTransparency = 0.3
+        ESP.OutlineColor = Color3.fromRGB(255, 0, 0)
         ESP.OutlineTransparency = 0
     else
         ESP.FillColor = player.TeamColor.Color
@@ -238,12 +324,15 @@ local function createESP(player)
     ESPText.Size = UDim2.new(0, 800, 0, 50)
     ESPText.Font = Enum.Font.SciFi
 
-    -- ⭐ 高亮玩家名字前加⭐符号
+    -- 判断显示文字
     if highlightedPlayerName and player.Name == highlightedPlayerName then
-        ESPText.Text = "⭐ " .. player[PlayerName] .. " | Distance: " .. distance
+        ESPText.Text = "⭐ " .. player[PlayerName] .. " | 距离: " .. distance
         ESPText.TextColor3 = HIGHLIGHT_COLOR
+    elseif Settings.SpecifiedTarget and (player.Name:lower() == Settings.SpecifiedTarget:lower() or player.DisplayName:lower() == Settings.SpecifiedTarget:lower()) then
+        ESPText.Text = "🎯 " .. player[PlayerName] .. " | 锁定目标 | 距离: " .. distance
+        ESPText.TextColor3 = Color3.fromRGB(255, 100, 100)
     else
-        ESPText.Text = player[PlayerName] .. " | Distance: " .. distance
+        ESPText.Text = player[PlayerName] .. " | 距离: " .. distance
         ESPText.TextColor3 = player.TeamColor.Color
     end
 
@@ -251,7 +340,6 @@ local function createESP(player)
     ESPText.TextWrapped = true
 end
 
--- ⭐ 修改：ESP 更新循环（每帧更新高亮状态）
 local function updateESP()
     if not getgenv().Toggle then
         for _, player in pairs(Players:GetPlayers()) do
@@ -283,40 +371,34 @@ local function updateESP()
                 
                 local espText = icon:FindFirstChild("ESP Text")
                 if espText then
-                    -- ⭐ 动态更新高亮标记
+                    -- 动态更新文字
                     if highlightedPlayerName and player.Name == highlightedPlayerName then
-                        espText.Text = "⭐ " .. player[PlayerName] .. " | Distance: " .. distance
+                        espText.Text = "⭐ " .. player[PlayerName] .. " | 距离: " .. distance
                         espText.TextColor3 = HIGHLIGHT_COLOR
+                    elseif Settings.SpecifiedTarget and (player.Name:lower() == Settings.SpecifiedTarget:lower() or player.DisplayName:lower() == Settings.SpecifiedTarget:lower()) then
+                        espText.Text = "🎯 " .. player[PlayerName] .. " | 锁定目标 | 距离: " .. distance
+                        espText.TextColor3 = Color3.fromRGB(255, 100, 100)
                     else
-                        espText.Text = player[PlayerName] .. " | Distance: " .. distance
+                        espText.Text = player[PlayerName] .. " | 距离: " .. distance
                         espText.TextColor3 = player.TeamColor.Color
                     end
                 end
             end
 
-            -- ⭐ 更新Highlight颜色
             local highlight = player.Character:FindFirstChild("Totally NOT Esp")
             if highlight then
                 if highlightedPlayerName and player.Name == highlightedPlayerName then
                     highlight.FillColor = HIGHLIGHT_COLOR
                     highlight.FillTransparency = HIGHLIGHT_TRANSPARENCY
                     highlight.OutlineColor = HIGHLIGHT_COLOR
+                elseif Settings.SpecifiedTarget and (player.Name:lower() == Settings.SpecifiedTarget:lower() or player.DisplayName:lower() == Settings.SpecifiedTarget:lower()) then
+                    highlight.FillColor = Color3.fromRGB(255, 100, 100)
+                    highlight.FillTransparency = 0.3
+                    highlight.OutlineColor = Color3.fromRGB(255, 0, 0)
                 else
                     highlight.FillColor = player.TeamColor.Color
                     highlight.FillTransparency = 0.5
                     highlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-                end
-                
-                local icon = player.Character:FindFirstChild("Icon")
-                if icon then
-                    local espText = icon:FindFirstChild("ESP Text")
-                    if espText then
-                        if highlightedPlayerName and player.Name == highlightedPlayerName then
-                            espText.TextColor3 = HIGHLIGHT_COLOR
-                        else
-                            espText.TextColor3 = player.TeamColor.Color
-                        end
-                    end
                 end
             end
         end
@@ -324,9 +406,8 @@ local function updateESP()
 end
 
 -- ============================================
--- UI 组件
+-- UI 组件 - 修复版
 -- ============================================
-
 function createSlider(parent, labelText, min, max, default, callback)
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(1, 0, 0, 40)
@@ -372,6 +453,7 @@ function createSlider(parent, labelText, min, max, default, callback)
     return {frame = frame, label = label, slider = slider}
 end
 
+-- 修复：createDropdown - 确保选项可以循环切换
 function createDropdown(parent, size, options, default, callback)
     local dropdown = Instance.new("TextButton")
     dropdown.Size = size or UDim2.new(0.55, 0, 1, -4)
@@ -387,13 +469,21 @@ function createDropdown(parent, size, options, default, callback)
     dropdownCorner.CornerRadius = UDim.new(0, 6)
     dropdownCorner.Parent = dropdown
 
+    -- 找到默认选项的索引
     local currentIndex = 1
     for i, v in ipairs(options) do
-        if v == default then currentIndex = i; break end
+        if v == default then
+            currentIndex = i
+            break
+        end
     end
 
     dropdown.MouseButton1Click:Connect(function()
-        currentIndex = currentIndex % #options + 1
+        -- 切换到下一个选项，循环
+        currentIndex = currentIndex + 1
+        if currentIndex > #options then
+            currentIndex = 1
+        end
         dropdown.Text = options[currentIndex]
         callback(options[currentIndex])
     end)
@@ -432,11 +522,12 @@ function createToggle(parent, label, default, callback)
 end
 
 -- ============================================
--- 创建主 UI
+-- 创建主 UI（所有文本已翻译为中文）
 -- ============================================
 local screenGui
 local mainFrame
-local highlightInput  -- ⭐ 新增：高亮输入框引用
+local highlightInput
+local specifiedTargetInput
 
 local function createUI()
     screenGui = Instance.new("ScreenGui")
@@ -446,8 +537,8 @@ local function createUI()
 
     mainFrame = Instance.new("Frame")
     mainFrame.Name = "MainFrame"
-    mainFrame.Size = UDim2.new(0, 300, 0, 520)  -- ⭐ 高度增加，容纳高亮输入框
-    mainFrame.Position = UDim2.new(0.5, -150, 0.5, -260)
+    mainFrame.Size = UDim2.new(0, 300, 0, 600)
+    mainFrame.Position = UDim2.new(0.5, -150, 0.5, -300)
     mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
     mainFrame.BackgroundTransparency = 0.1
     mainFrame.BorderSizePixel = 0
@@ -477,7 +568,7 @@ local function createUI()
     local titleText = Instance.new("TextLabel")
     titleText.Size = UDim2.new(1, 0, 1, 0)
     titleText.BackgroundTransparency = 1
-    titleText.Text = "🎯 Aimbot + ESP (H隐藏)"
+    titleText.Text = "🎯 瞄准辅助 + 透视 (H隐藏)"
     titleText.TextColor3 = Color3.fromRGB(200, 200, 255)
     titleText.Font = Enum.Font.GothamBold
     titleText.TextSize = 18
@@ -495,9 +586,7 @@ local function createUI()
     uiListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
     uiListLayout.Parent = contentFrame
 
-    -- ============================================
-    -- ⭐ 新增：玩家名字高亮输入框
-    -- ============================================
+    -- 高亮玩家输入框
     local highlightFrame = Instance.new("Frame")
     highlightFrame.Size = UDim2.new(1, 0, 0, 40)
     highlightFrame.BackgroundTransparency = 1
@@ -530,7 +619,6 @@ local function createUI()
     highlightInputCorner.CornerRadius = UDim.new(0, 6)
     highlightInputCorner.Parent = highlightInput
 
-    -- 清除高亮按钮
     local clearHighlightBtn = Instance.new("TextButton")
     clearHighlightBtn.Size = UDim2.new(0.3, 0, 0.4, 0)
     clearHighlightBtn.Position = UDim2.new(0.7, 0, 0.55, 0)
@@ -545,7 +633,6 @@ local function createUI()
     clearBtnCorner.CornerRadius = UDim.new(0, 6)
     clearBtnCorner.Parent = clearHighlightBtn
 
-    -- 输入框回车事件
     highlightInput.FocusLost:Connect(function(enterPressed)
         if enterPressed then
             local name = highlightInput.Text:gsub("^%s+", ""):gsub("%s+$", "")
@@ -553,7 +640,6 @@ local function createUI()
                 highlightSpecificPlayer(name)
             else
                 highlightedPlayerName = nil
-                print("🔍 已清除高亮")
             end
             highlightInput.Text = ""
         end
@@ -561,20 +647,123 @@ local function createUI()
 
     clearHighlightBtn.MouseButton1Click:Connect(function()
         highlightedPlayerName = nil
-        print("🔍 已清除高亮")
         highlightInput.Text = ""
     end)
 
     -- ============================================
-    -- 开关按钮
+    -- 新增：锁定模式选择 + 指定目标输入
     -- ============================================
+    
+    -- 锁定模式选择
+    local lockModeFrame = Instance.new("Frame")
+    lockModeFrame.Size = UDim2.new(1, 0, 0, 30)
+    lockModeFrame.BackgroundTransparency = 1
+    lockModeFrame.Parent = contentFrame
+
+    local lockModeLabel = Instance.new("TextLabel")
+    lockModeLabel.Size = UDim2.new(0.4, 0, 1, 0)
+    lockModeLabel.BackgroundTransparency = 1
+    lockModeLabel.Text = "锁定模式:"
+    lockModeLabel.TextColor3 = Color3.fromRGB(200, 200, 255)
+    lockModeLabel.Font = Enum.Font.GothamSemibold
+    lockModeLabel.TextSize = 14
+    lockModeLabel.TextXAlignment = Enum.TextXAlignment.Left
+    lockModeLabel.Parent = lockModeFrame
+
+    local lockModeOptions = {"最近玩家", "指定玩家"}
+    local lockModeDropdown = createDropdown(lockModeFrame, UDim2.new(0.55, 0, 0, 0), lockModeOptions, "最近玩家", function(value)
+        if value == "最近玩家" then
+            Settings.LockMode = "nearest"
+        elseif value == "指定玩家" then
+            Settings.LockMode = "specified"
+        end
+        -- 切换模式时重置锁定
+        if isLocking then
+            isLocking = false
+            lockedTarget = nil
+        end
+        print("锁定模式已切换为: " .. value)
+    end)
+
+    -- 指定目标输入框
+    local specifiedTargetFrame = Instance.new("Frame")
+    specifiedTargetFrame.Size = UDim2.new(1, 0, 0, 40)
+    specifiedTargetFrame.BackgroundTransparency = 1
+    specifiedTargetFrame.Parent = contentFrame
+
+    local specifiedTargetLabel = Instance.new("TextLabel")
+    specifiedTargetLabel.Size = UDim2.new(0.4, 0, 0.5, 0)
+    specifiedTargetLabel.Position = UDim2.new(0, 0, 0, 0)
+    specifiedTargetLabel.BackgroundTransparency = 1
+    specifiedTargetLabel.Text = "🎯 指定目标:"
+    specifiedTargetLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+    specifiedTargetLabel.Font = Enum.Font.GothamSemibold
+    specifiedTargetLabel.TextSize = 14
+    specifiedTargetLabel.TextXAlignment = Enum.TextXAlignment.Left
+    specifiedTargetLabel.Parent = specifiedTargetFrame
+
+    specifiedTargetInput = Instance.new("TextBox")
+    specifiedTargetInput.Size = UDim2.new(0.55, 0, 0.5, 0)
+    specifiedTargetInput.Position = UDim2.new(0.45, 0, 0, 0)
+    specifiedTargetInput.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+    specifiedTargetInput.TextColor3 = Color3.fromRGB(255, 100, 100)
+    specifiedTargetInput.Font = Enum.Font.GothamSemibold
+    specifiedTargetInput.TextSize = 14
+    specifiedTargetInput.Text = ""
+    specifiedTargetInput.PlaceholderText = "输入玩家名字..."
+    specifiedTargetInput.ClearTextOnFocus = true
+    specifiedTargetInput.Parent = specifiedTargetFrame
+
+    local specifiedTargetInputCorner = Instance.new("UICorner")
+    specifiedTargetInputCorner.CornerRadius = UDim.new(0, 6)
+    specifiedTargetInputCorner.Parent = specifiedTargetInput
+
+    local clearTargetBtn = Instance.new("TextButton")
+    clearTargetBtn.Size = UDim2.new(0.3, 0, 0.4, 0)
+    clearTargetBtn.Position = UDim2.new(0.7, 0, 0.55, 0)
+    clearTargetBtn.BackgroundColor3 = Color3.fromRGB(80, 40, 40)
+    clearTargetBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    clearTargetBtn.Font = Enum.Font.GothamSemibold
+    clearTargetBtn.TextSize = 12
+    clearTargetBtn.Text = "清除"
+    clearTargetBtn.Parent = specifiedTargetFrame
+
+    local clearTargetBtnCorner = Instance.new("UICorner")
+    clearTargetBtnCorner.CornerRadius = UDim.new(0, 6)
+    clearTargetBtnCorner.Parent = clearTargetBtn
+
+    specifiedTargetInput.FocusLost:Connect(function(enterPressed)
+        if enterPressed then
+            local name = specifiedTargetInput.Text:gsub("^%s+", ""):gsub("%s+$", "")
+            if name and name ~= "" then
+                Settings.SpecifiedTarget = name
+                print("指定目标已设置为: " .. name)
+            else
+                Settings.SpecifiedTarget = nil
+                print("指定目标已清除")
+            end
+            specifiedTargetInput.Text = ""
+        end
+    end)
+
+    clearTargetBtn.MouseButton1Click:Connect(function()
+        Settings.SpecifiedTarget = nil
+        specifiedTargetInput.Text = ""
+        print("指定目标已清除")
+    end)
+
+    -- ============================================
+    -- 原有UI元素
+    -- ============================================
+
+    -- 开关按钮
     local toggleButton = Instance.new("TextButton")
     toggleButton.Size = UDim2.new(1, 0, 0, 35)
     toggleButton.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
     toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     toggleButton.Font = Enum.Font.GothamSemibold
     toggleButton.TextSize = 16
-    toggleButton.Text = "🔴 Aimbot: OFF"
+    toggleButton.Text = "🔴 瞄准辅助: 关闭"
     toggleButton.Parent = contentFrame
 
     local toggleCorner = Instance.new("UICorner")
@@ -584,11 +773,11 @@ local function createUI()
     toggleButton.MouseButton1Click:Connect(function()
         Settings.Enabled = not Settings.Enabled
         if Settings.Enabled then
-            toggleButton.Text = "🟢 Aimbot: ON"
+            toggleButton.Text = "🟢 瞄准辅助: 开启"
             toggleButton.BackgroundColor3 = Color3.fromRGB(40, 80, 40)
             FOVCircle.Visible = Settings.ShowFOV
         else
-            toggleButton.Text = "🔴 Aimbot: OFF"
+            toggleButton.Text = "🔴 瞄准辅助: 关闭"
             toggleButton.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
             FOVCircle.Visible = false
             if isLocking then
@@ -608,7 +797,7 @@ local function createUI()
     local modeLabel = Instance.new("TextLabel")
     modeLabel.Size = UDim2.new(0.5, 0, 1, 0)
     modeLabel.BackgroundTransparency = 1
-    modeLabel.Text = "Lock Mode:"
+    modeLabel.Text = "锁定模式:"
     modeLabel.TextColor3 = Color3.fromRGB(200, 200, 255)
     modeLabel.Font = Enum.Font.GothamSemibold
     modeLabel.TextSize = 14
@@ -622,7 +811,7 @@ local function createUI()
     modeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     modeButton.Font = Enum.Font.GothamSemibold
     modeButton.TextSize = 14
-    modeButton.Text = "Toggle (E)"
+    modeButton.Text = "切换 (E)"
     modeButton.Parent = modeRow
 
     local modeCorner = Instance.new("UICorner")
@@ -632,9 +821,9 @@ local function createUI()
     modeButton.MouseButton1Click:Connect(function()
         Settings.HoldToLock = not Settings.HoldToLock
         if Settings.HoldToLock then
-            modeButton.Text = "Hold (RMB)"
+            modeButton.Text = "按住 (右键)"
         else
-            modeButton.Text = "Toggle (E)"
+            modeButton.Text = "切换 (E)"
         end
         if isLocking then
             isLocking = false
@@ -644,18 +833,18 @@ local function createUI()
     end)
 
     -- FOV 滑块
-    local fovSliderFrame = createSlider(contentFrame, "FOV: " .. Settings.FOV, 10, 300, Settings.FOV, function(value)
+    local fovSliderFrame = createSlider(contentFrame, "视野范围: " .. Settings.FOV, 10, 300, Settings.FOV, function(value)
         Settings.FOV = value
-        fovSliderFrame.label.Text = "FOV: " .. value
+        fovSliderFrame.label.Text = "视野范围: " .. value
     end)
 
     -- 平滑度滑块
-    local smoothSliderFrame = createSlider(contentFrame, "Smooth: " .. string.format("%.2f", Settings.Smoothness), 0.01, 1, Settings.Smoothness, function(value)
+    local smoothSliderFrame = createSlider(contentFrame, "平滑度: " .. string.format("%.2f", Settings.Smoothness), 0.01, 1, Settings.Smoothness, function(value)
         Settings.Smoothness = value
-        smoothSliderFrame.label.Text = "Smooth: " .. string.format("%.2f", value)
+        smoothSliderFrame.label.Text = "平滑度: " .. string.format("%.2f", value)
     end)
 
-    -- 部位下拉
+    -- 部位下拉菜单
     local partFrame = Instance.new("Frame")
     partFrame.Size = UDim2.new(1, 0, 0, 30)
     partFrame.BackgroundTransparency = 1
@@ -664,16 +853,23 @@ local function createUI()
     local partLabel = Instance.new("TextLabel")
     partLabel.Size = UDim2.new(0.4, 0, 1, 0)
     partLabel.BackgroundTransparency = 1
-    partLabel.Text = "Aim Part:"
+    partLabel.Text = "瞄准部位:"
     partLabel.TextColor3 = Color3.fromRGB(200, 200, 255)
     partLabel.Font = Enum.Font.GothamSemibold
     partLabel.TextSize = 14
     partLabel.TextXAlignment = Enum.TextXAlignment.Left
     partLabel.Parent = partFrame
 
-    local parts = {"Head", "HumanoidRootPart", "Torso"}
-    local partDropdown = createDropdown(partFrame, UDim2.new(0.55, 0, 0, 0), parts, Settings.AimPart, function(value)
-        Settings.AimPart = value
+    local parts = {"头部", "身体", "躯干"}
+    local partDropdown = createDropdown(partFrame, UDim2.new(0.55, 0, 0, 0), parts, "头部", function(value)
+        if value == "头部" then
+            Settings.AimPart = "Head"
+        elseif value == "身体" then
+            Settings.AimPart = "HumanoidRootPart"
+        elseif value == "躯干" then
+            Settings.AimPart = "Torso"
+        end
+        print("瞄准部位已切换为: " .. value .. " -> " .. Settings.AimPart)
     end)
 
     -- 按键绑定
@@ -685,7 +881,7 @@ local function createUI()
     local keybindLabel = Instance.new("TextLabel")
     keybindLabel.Size = UDim2.new(0.4, 0, 1, 0)
     keybindLabel.BackgroundTransparency = 1
-    keybindLabel.Text = "Lock Key:"
+    keybindLabel.Text = "锁定按键:"
     keybindLabel.TextColor3 = Color3.fromRGB(200, 200, 255)
     keybindLabel.Font = Enum.Font.GothamSemibold
     keybindLabel.TextSize = 14
@@ -719,7 +915,7 @@ local function createUI()
     optionsFrame.BackgroundTransparency = 1
     optionsFrame.Parent = contentFrame
 
-    local teamCheckToggle = createToggle(optionsFrame, "Team", Settings.TeamCheck, function(value)
+    local teamCheckToggle = createToggle(optionsFrame, "队伍", Settings.TeamCheck, function(value)
         Settings.TeamCheck = value
         getgenv().TC = value
         if isLocking then
@@ -728,11 +924,11 @@ local function createUI()
         end
     end)
 
-    local wallCheckToggle = createToggle(optionsFrame, "Wall", Settings.WallCheck, function(value)
+    local wallCheckToggle = createToggle(optionsFrame, "墙体", Settings.WallCheck, function(value)
         Settings.WallCheck = value
     end)
 
-    local showFOVToggle = createToggle(optionsFrame, "FOV", Settings.ShowFOV, function(value)
+    local showFOVToggle = createToggle(optionsFrame, "视野", Settings.ShowFOV, function(value)
         Settings.ShowFOV = value
         FOVCircle.Visible = value and Settings.Enabled
     end)
@@ -746,7 +942,7 @@ local function createUI()
     local espToggleLabel = Instance.new("TextLabel")
     espToggleLabel.Size = UDim2.new(0.5, 0, 1, 0)
     espToggleLabel.BackgroundTransparency = 1
-    espToggleLabel.Text = "ESP:"
+    espToggleLabel.Text = "透视:"
     espToggleLabel.TextColor3 = Color3.fromRGB(200, 200, 255)
     espToggleLabel.Font = Enum.Font.GothamSemibold
     espToggleLabel.TextSize = 14
@@ -760,7 +956,7 @@ local function createUI()
     espToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     espToggleButton.Font = Enum.Font.GothamSemibold
     espToggleButton.TextSize = 14
-    espToggleButton.Text = "ON"
+    espToggleButton.Text = "开启"
     espToggleButton.Parent = espToggleFrame
 
     local espCorner = Instance.new("UICorner")
@@ -770,10 +966,10 @@ local function createUI()
     espToggleButton.MouseButton1Click:Connect(function()
         getgenv().Toggle = not getgenv().Toggle
         if getgenv().Toggle then
-            espToggleButton.Text = "ON"
+            espToggleButton.Text = "开启"
             espToggleButton.BackgroundColor3 = Color3.fromRGB(40, 120, 40)
         else
-            espToggleButton.Text = "OFF"
+            espToggleButton.Text = "关闭"
             espToggleButton.BackgroundColor3 = Color3.fromRGB(80, 40, 40)
         end
     end)
@@ -787,7 +983,7 @@ local function createUI()
     local crosshairLabel = Instance.new("TextLabel")
     crosshairLabel.Size = UDim2.new(0.5, 0, 1, 0)
     crosshairLabel.BackgroundTransparency = 1
-    crosshairLabel.Text = "Crosshair:"
+    crosshairLabel.Text = "准星:"
     crosshairLabel.TextColor3 = Color3.fromRGB(200, 200, 255)
     crosshairLabel.Font = Enum.Font.GothamSemibold
     crosshairLabel.TextSize = 14
@@ -801,7 +997,7 @@ local function createUI()
     crosshairButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     crosshairButton.Font = Enum.Font.GothamSemibold
     crosshairButton.TextSize = 14
-    crosshairButton.Text = "ON"
+    crosshairButton.Text = "开启"
     crosshairButton.Parent = crosshairRow
 
     local crossCorner = Instance.new("UICorner")
@@ -811,10 +1007,10 @@ local function createUI()
     crosshairButton.MouseButton1Click:Connect(function()
         Settings.ShowCrosshair = not Settings.ShowCrosshair
         if Settings.ShowCrosshair then
-            crosshairButton.Text = "ON"
+            crosshairButton.Text = "开启"
             crosshairButton.BackgroundColor3 = Color3.fromRGB(40, 120, 40)
         else
-            crosshairButton.Text = "OFF"
+            crosshairButton.Text = "关闭"
             crosshairButton.BackgroundColor3 = Color3.fromRGB(80, 40, 40)
         end
     end)
@@ -828,10 +1024,12 @@ createUI()
 -- ============================================
 -- 按键监听
 -- ============================================
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
+local connections = {}
+
+table.insert(connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
 
-    -- 隐藏/显示 UI
+    -- 隐藏/显示 UI（按H键）
     if input.KeyCode == Settings.HideKey then
         Settings.UIVisible = not Settings.UIVisible
         if mainFrame then
@@ -840,7 +1038,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         return
     end
 
-    -- ⭐ 按Y键高亮鼠标下的玩家
+    -- 按Y键高亮鼠标下的玩家
     if input.KeyCode == Enum.KeyCode.Y then
         local mouse = LocalPlayer:GetMouse()
         local target = mouse.Target
@@ -857,7 +1055,6 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
             end
         else
             highlightedPlayerName = nil
-            print("🔍 已清除高亮")
         end
         return
     end
@@ -870,9 +1067,12 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
             isLocking = false
             lockedTarget = nil
         else
-            lockedTarget = getClosestPlayer()
+            lockedTarget = getLockTarget()
             if lockedTarget then
                 isLocking = true
+                if Settings.LockMode == "specified" then
+                    print("已锁定指定玩家: " .. lockedTarget.Name)
+                end
             end
         end
     end
@@ -880,14 +1080,17 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     -- 按住模式
     if Settings.HoldToLock and input.UserInputType == Enum.UserInputType.MouseButton2 then
         holdLocking = true
-        lockedTarget = getClosestPlayer()
+        lockedTarget = getLockTarget()
         if lockedTarget then
             isLocking = true
+            if Settings.LockMode == "specified" then
+                print("已锁定指定玩家: " .. lockedTarget.Name)
+            end
         end
     end
-end)
+end))
 
-UserInputService.InputEnded:Connect(function(input, gameProcessed)
+table.insert(connections, UserInputService.InputEnded:Connect(function(input, gameProcessed)
     if gameProcessed then return end
 
     if Settings.HoldToLock and input.UserInputType == Enum.UserInputType.MouseButton2 then
@@ -897,7 +1100,13 @@ UserInputService.InputEnded:Connect(function(input, gameProcessed)
             lockedTarget = nil
         end
     end
-end)
+end))
+
+-- 存储连接以便清除
+getgenv()._connections = getgenv()._connections or {}
+for _, conn in ipairs(connections) do
+    table.insert(getgenv()._connections, conn)
+end
 
 -- ============================================
 -- 主循环（每帧更新）
@@ -908,6 +1117,36 @@ RunService.RenderStepped:Connect(function()
         FOVCircle.Position = Vector2.new(Mouse.X, Mouse.Y)
         FOVCircle.Radius = Settings.FOV
         FOVCircle.Visible = true
+        
+        local hasTarget = false
+        
+        if isLocking and lockedTarget then
+            local char = lockedTarget.Character
+            if char 
+               and char:FindFirstChild(Settings.AimPart) 
+               and char:FindFirstChild("Humanoid") 
+               and char.Humanoid.Health > 0 
+               and isEnemy(lockedTarget) then
+                hasTarget = true
+            else
+                lockedTarget = nil
+                isLocking = false
+                holdLocking = false
+            end
+        end
+        
+        if not hasTarget then
+            local closestPlayer = getLockTarget()
+            if closestPlayer then
+                hasTarget = true
+            end
+        end
+        
+        if hasTarget then
+            FOVCircle.Color = Color3.fromRGB(100, 255, 100)
+        else
+            FOVCircle.Color = Color3.fromRGB(255, 50, 50)
+        end
     else
         FOVCircle.Visible = false
     end
@@ -915,7 +1154,7 @@ RunService.RenderStepped:Connect(function()
     -- 更新准星
     updateCrosshair()
 
-    -- 更新 ESP（包含高亮功能）
+    -- 更新透视
     updateESP()
 
     -- 自动锁定
@@ -929,14 +1168,13 @@ RunService.RenderStepped:Connect(function()
            and isEnemy(lockedTarget) then
 
             local targetPos = char[Settings.AimPart].Position
-
             local currentPos = Camera.CFrame.Position
             Camera.CFrame = Camera.CFrame:Lerp(
                 CFrame.lookAt(currentPos, targetPos),
                 Settings.Smoothness
             )
         else
-            lockedTarget = getClosestPlayer()
+            lockedTarget = getLockTarget()
             if not lockedTarget and not holdLocking then
                 if not Settings.HoldToLock then
                     isLocking = false
@@ -946,7 +1184,7 @@ RunService.RenderStepped:Connect(function()
             end
         end
     elseif Settings.Enabled and not isLocking and Settings.AutoLock and not Settings.HoldToLock then
-        local target = getClosestPlayer()
+        local target = getLockTarget()
         if target then
             FOVCircle.Color = Color3.fromRGB(100, 255, 100)
         else
