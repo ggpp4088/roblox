@@ -486,13 +486,13 @@ local function createUI()
     screenGui.Name = "AimbotUI"
     screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
     screenGui.ResetOnSpawn = false
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
+    -- 主UI面板
     mainFrame = Instance.new("Frame")
     mainFrame.Name = "MainFrame"
-    -- 缩小UI尺寸，适合手机屏幕
     mainFrame.Size = UDim2.new(0, 180, 0, 320)
-    -- 位置固定在右上角
-    mainFrame.Position = UDim2.new(1, -190, 0, 10)
+    mainFrame.Position = UDim2.new(1, -190, 0, 50)
     mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
     mainFrame.BackgroundTransparency = 0.1
     mainFrame.BorderSizePixel = 0
@@ -509,7 +509,6 @@ local function createUI()
     uiStroke.Thickness = 1.5
     uiStroke.Parent = mainFrame
 
-    -- 标题栏缩小
     local titleBar = Instance.new("Frame")
     titleBar.Size = UDim2.new(1, 0, 0, 28)
     titleBar.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
@@ -530,7 +529,6 @@ local function createUI()
     titleText.TextScaled = true
     titleText.Parent = titleBar
 
-    -- 内容区域缩小
     local contentFrame = Instance.new("Frame")
     contentFrame.Size = UDim2.new(1, -10, 1, -32)
     contentFrame.Position = UDim2.new(0, 5, 0, 30)
@@ -869,19 +867,48 @@ local function createUI()
     -- 手机端专用按钮（仅在触摸设备上显示）
     -- ============================================
     if isMobile then
-        -- 1. 锁定/解锁按钮 - 屏幕底部中间
+        -- 1. 隐藏UI按钮 - 固定在屏幕最上方，不会被遮挡
+        hideBtn = Instance.new("TextButton")
+        hideBtn.Size = UDim2.new(0, 40, 0, 40)
+        hideBtn.Position = UDim2.new(1, -50, 0, 5)
+        hideBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+        hideBtn.TextColor3 = Color3.fromRGB(200, 200, 255)
+        hideBtn.Font = Enum.Font.GothamSemibold
+        hideBtn.TextSize = 20
+        hideBtn.Text = "✕"
+        hideBtn.ZIndex = 10
+        hideBtn.Parent = screenGui
+
+        local hideBtnCorner = Instance.new("UICorner")
+        hideBtnCorner.CornerRadius = UDim.new(0, 10)
+        hideBtnCorner.Parent = hideBtn
+
+        hideBtn.MouseButton1Click:Connect(function()
+            Settings.UIVisible = not Settings.UIVisible
+            mainFrame.Visible = Settings.UIVisible
+            if Settings.UIVisible then
+                hideBtn.Text = "✕"
+                hideBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+            else
+                hideBtn.Text = "☰"
+                hideBtn.BackgroundColor3 = Color3.fromRGB(40, 80, 40)
+            end
+        end)
+
+        -- 2. 锁定/解锁按钮 - 屏幕底部中间
         lockBtn = Instance.new("TextButton")
-        lockBtn.Size = UDim2.new(0, 90, 0, 40)
-        lockBtn.Position = UDim2.new(0.5, -45, 0.85, -20)
+        lockBtn.Size = UDim2.new(0, 100, 0, 45)
+        lockBtn.Position = UDim2.new(0.5, -50, 0.85, -22)
         lockBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
         lockBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
         lockBtn.Font = Enum.Font.GothamSemibold
-        lockBtn.TextSize = 15
+        lockBtn.TextSize = 16
         lockBtn.Text = "🔒 锁定"
+        lockBtn.ZIndex = 10
         lockBtn.Parent = screenGui
 
         local lockBtnCorner = Instance.new("UICorner")
-        lockBtnCorner.CornerRadius = UDim.new(0, 8)
+        lockBtnCorner.CornerRadius = UDim.new(0, 10)
         lockBtnCorner.Parent = lockBtn
 
         lockBtn.MouseButton1Click:Connect(function()
@@ -901,44 +928,20 @@ local function createUI()
             end
         end)
 
-        -- 2. 隐藏UI按钮 - 右上角
-        hideBtn = Instance.new("TextButton")
-        hideBtn.Size = UDim2.new(0, 36, 0, 36)
-        hideBtn.Position = UDim2.new(1, -46, 0, 6)
-        hideBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
-        hideBtn.TextColor3 = Color3.fromRGB(200, 200, 255)
-        hideBtn.Font = Enum.Font.GothamSemibold
-        hideBtn.TextSize = 18
-        hideBtn.Text = "✕"
-        hideBtn.Parent = screenGui
-
-        local hideBtnCorner = Instance.new("UICorner")
-        hideBtnCorner.CornerRadius = UDim.new(0, 8)
-        hideBtnCorner.Parent = hideBtn
-
-        hideBtn.MouseButton1Click:Connect(function()
-            Settings.UIVisible = not Settings.UIVisible
-            mainFrame.Visible = Settings.UIVisible
-            if Settings.UIVisible then
-                hideBtn.Text = "✕"
-            else
-                hideBtn.Text = "☰"
-            end
-        end)
-
-        -- 3. 切换模式按钮 - 锁定按钮旁边
+        -- 3. 切换模式按钮 - 锁定按钮左侧
         local modeMobileBtn = Instance.new("TextButton")
-        modeMobileBtn.Size = UDim2.new(0, 80, 0, 36)
-        modeMobileBtn.Position = UDim2.new(0.5, -135, 0.85, -18)
+        modeMobileBtn.Size = UDim2.new(0, 85, 0, 40)
+        modeMobileBtn.Position = UDim2.new(0.5, -145, 0.85, -20)
         modeMobileBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
         modeMobileBtn.TextColor3 = Color3.fromRGB(200, 200, 255)
         modeMobileBtn.Font = Enum.Font.GothamSemibold
-        modeMobileBtn.TextSize = 12
+        modeMobileBtn.TextSize = 13
         modeMobileBtn.Text = "切换模式"
+        modeMobileBtn.ZIndex = 10
         modeMobileBtn.Parent = screenGui
 
         local modeMobileCorner = Instance.new("UICorner")
-        modeMobileCorner.CornerRadius = UDim.new(0, 6)
+        modeMobileCorner.CornerRadius = UDim.new(0, 8)
         modeMobileCorner.Parent = modeMobileBtn
 
         modeMobileBtn.MouseButton1Click:Connect(function()
@@ -959,23 +962,23 @@ local function createUI()
             end
         end)
 
-        -- 4. 高亮鼠标下的玩家按钮（替代Y键）
+        -- 4. 高亮按钮 - 锁定按钮右侧
         local highlightMobileBtn = Instance.new("TextButton")
-        highlightMobileBtn.Size = UDim2.new(0, 80, 0, 36)
-        highlightMobileBtn.Position = UDim2.new(0.5, 55, 0.85, -18)
+        highlightMobileBtn.Size = UDim2.new(0, 85, 0, 40)
+        highlightMobileBtn.Position = UDim2.new(0.5, 60, 0.85, -20)
         highlightMobileBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 40)
         highlightMobileBtn.TextColor3 = Color3.fromRGB(255, 215, 0)
         highlightMobileBtn.Font = Enum.Font.GothamSemibold
-        highlightMobileBtn.TextSize = 12
+        highlightMobileBtn.TextSize = 13
         highlightMobileBtn.Text = "⭐ 高亮"
+        highlightMobileBtn.ZIndex = 10
         highlightMobileBtn.Parent = screenGui
 
         local highlightMobileCorner = Instance.new("UICorner")
-        highlightMobileCorner.CornerRadius = UDim.new(0, 6)
+        highlightMobileCorner.CornerRadius = UDim.new(0, 8)
         highlightMobileCorner.Parent = highlightMobileBtn
 
         highlightMobileBtn.MouseButton1Click:Connect(function()
-            -- 模拟Y键功能：高亮最近的玩家
             local closest = getClosestPlayer()
             if closest then
                 highlightSpecificPlayer(closest.Name)
