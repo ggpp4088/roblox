@@ -80,17 +80,17 @@ local Settings = {
     UIVisible = true,
     HoldToLock = false,
     ShowCrosshair = true,
-    CrosshairColor = Color3.fromRGB(255, 255, 255),
-    -- 新增：锁定模式
-    -- "nearest" = 距离最近的玩家
-    -- "specified" = 指定的玩家
-    LockMode = "nearest",
-    SpecifiedTarget = nil  -- 指定的玩家名称
+    CrosshairColor = Color3.fromRGB(255, 255, 255)
 }
 
 local lockedTarget = nil
 local isLocking = false
 local holdLocking = false
+
+-- ============================================
+-- 检测是否为手机设备
+-- ============================================
+local isMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
 
 -- ============================================
 -- 高亮指定玩家
@@ -163,36 +163,6 @@ local function getClosestPlayer()
         end
     end
     return closestPlayer
-end
-
--- 获取指定玩家（通过名称）
-local function getSpecifiedPlayer(playerName)
-    if not playerName or playerName == "" then return nil end
-    
-    for _, player in pairs(Players:GetPlayers()) do
-        if player.Name:lower() == playerName:lower() or player.DisplayName:lower() == playerName:lower() then
-            -- 检查是否有效目标
-            if player ~= LocalPlayer 
-               and player.Character 
-               and player.Character:FindFirstChild("Humanoid") 
-               and player.Character.Humanoid.Health > 0
-               and player.Character:FindFirstChild(Settings.AimPart) 
-               and isEnemy(player) then
-                return player
-            end
-        end
-    end
-    return nil
-end
-
--- 根据锁定模式获取目标
-local function getLockTarget()
-    if Settings.LockMode == "nearest" then
-        return getClosestPlayer()
-    elseif Settings.LockMode == "specified" then
-        return getSpecifiedPlayer(Settings.SpecifiedTarget)
-    end
-    return nil
 end
 
 -- ============================================
@@ -288,16 +258,10 @@ local function createESP(player)
     ESP.Enabled = true
     ESP.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 
-    -- 判断是否是被高亮的玩家或指定的目标
     if highlightedPlayerName and player.Name == highlightedPlayerName then
         ESP.FillColor = HIGHLIGHT_COLOR
         ESP.FillTransparency = HIGHLIGHT_TRANSPARENCY
         ESP.OutlineColor = HIGHLIGHT_COLOR
-        ESP.OutlineTransparency = 0
-    elseif Settings.SpecifiedTarget and (player.Name:lower() == Settings.SpecifiedTarget:lower() or player.DisplayName:lower() == Settings.SpecifiedTarget:lower()) then
-        ESP.FillColor = Color3.fromRGB(255, 100, 100)  -- 红色表示指定目标
-        ESP.FillTransparency = 0.3
-        ESP.OutlineColor = Color3.fromRGB(255, 0, 0)
         ESP.OutlineTransparency = 0
     else
         ESP.FillColor = player.TeamColor.Color
@@ -324,13 +288,9 @@ local function createESP(player)
     ESPText.Size = UDim2.new(0, 800, 0, 50)
     ESPText.Font = Enum.Font.SciFi
 
-    -- 判断显示文字
     if highlightedPlayerName and player.Name == highlightedPlayerName then
         ESPText.Text = "⭐ " .. player[PlayerName] .. " | 距离: " .. distance
         ESPText.TextColor3 = HIGHLIGHT_COLOR
-    elseif Settings.SpecifiedTarget and (player.Name:lower() == Settings.SpecifiedTarget:lower() or player.DisplayName:lower() == Settings.SpecifiedTarget:lower()) then
-        ESPText.Text = "🎯 " .. player[PlayerName] .. " | 锁定目标 | 距离: " .. distance
-        ESPText.TextColor3 = Color3.fromRGB(255, 100, 100)
     else
         ESPText.Text = player[PlayerName] .. " | 距离: " .. distance
         ESPText.TextColor3 = player.TeamColor.Color
@@ -371,13 +331,9 @@ local function updateESP()
                 
                 local espText = icon:FindFirstChild("ESP Text")
                 if espText then
-                    -- 动态更新文字
                     if highlightedPlayerName and player.Name == highlightedPlayerName then
                         espText.Text = "⭐ " .. player[PlayerName] .. " | 距离: " .. distance
                         espText.TextColor3 = HIGHLIGHT_COLOR
-                    elseif Settings.SpecifiedTarget and (player.Name:lower() == Settings.SpecifiedTarget:lower() or player.DisplayName:lower() == Settings.SpecifiedTarget:lower()) then
-                        espText.Text = "🎯 " .. player[PlayerName] .. " | 锁定目标 | 距离: " .. distance
-                        espText.TextColor3 = Color3.fromRGB(255, 100, 100)
                     else
                         espText.Text = player[PlayerName] .. " | 距离: " .. distance
                         espText.TextColor3 = player.TeamColor.Color
@@ -391,10 +347,6 @@ local function updateESP()
                     highlight.FillColor = HIGHLIGHT_COLOR
                     highlight.FillTransparency = HIGHLIGHT_TRANSPARENCY
                     highlight.OutlineColor = HIGHLIGHT_COLOR
-                elseif Settings.SpecifiedTarget and (player.Name:lower() == Settings.SpecifiedTarget:lower() or player.DisplayName:lower() == Settings.SpecifiedTarget:lower()) then
-                    highlight.FillColor = Color3.fromRGB(255, 100, 100)
-                    highlight.FillTransparency = 0.3
-                    highlight.OutlineColor = Color3.fromRGB(255, 0, 0)
                 else
                     highlight.FillColor = player.TeamColor.Color
                     highlight.FillTransparency = 0.5
@@ -406,11 +358,11 @@ local function updateESP()
 end
 
 -- ============================================
--- UI 组件 - 修复版
+-- UI 组件
 -- ============================================
 function createSlider(parent, labelText, min, max, default, callback)
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(1, 0, 0, 40)
+    frame.Size = UDim2.new(1, 0, 0, 28)
     frame.BackgroundTransparency = 1
     frame.Parent = parent
 
@@ -420,7 +372,7 @@ function createSlider(parent, labelText, min, max, default, callback)
     label.Text = labelText
     label.TextColor3 = Color3.fromRGB(200, 200, 255)
     label.Font = Enum.Font.GothamSemibold
-    label.TextSize = 14
+    label.TextSize = 11
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Parent = frame
 
@@ -430,13 +382,13 @@ function createSlider(parent, labelText, min, max, default, callback)
     slider.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
     slider.TextColor3 = Color3.fromRGB(255, 255, 255)
     slider.Font = Enum.Font.GothamSemibold
-    slider.TextSize = 14
+    slider.TextSize = 11
     slider.Text = tostring(default)
     slider.ClearTextOnFocus = false
     slider.Parent = frame
 
     local sliderCorner = Instance.new("UICorner")
-    sliderCorner.CornerRadius = UDim.new(0, 6)
+    sliderCorner.CornerRadius = UDim.new(0, 4)
     sliderCorner.Parent = slider
 
     slider.FocusLost:Connect(function()
@@ -453,7 +405,6 @@ function createSlider(parent, labelText, min, max, default, callback)
     return {frame = frame, label = label, slider = slider}
 end
 
--- 修复：createDropdown - 确保选项可以循环切换
 function createDropdown(parent, size, options, default, callback)
     local dropdown = Instance.new("TextButton")
     dropdown.Size = size or UDim2.new(0.55, 0, 1, -4)
@@ -461,15 +412,14 @@ function createDropdown(parent, size, options, default, callback)
     dropdown.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
     dropdown.TextColor3 = Color3.fromRGB(255, 255, 255)
     dropdown.Font = Enum.Font.GothamSemibold
-    dropdown.TextSize = 14
+    dropdown.TextSize = 12
     dropdown.Text = default
     dropdown.Parent = parent
 
     local dropdownCorner = Instance.new("UICorner")
-    dropdownCorner.CornerRadius = UDim.new(0, 6)
+    dropdownCorner.CornerRadius = UDim.new(0, 5)
     dropdownCorner.Parent = dropdown
 
-    -- 找到默认选项的索引
     local currentIndex = 1
     for i, v in ipairs(options) do
         if v == default then
@@ -479,7 +429,6 @@ function createDropdown(parent, size, options, default, callback)
     end
 
     dropdown.MouseButton1Click:Connect(function()
-        -- 切换到下一个选项，循环
         currentIndex = currentIndex + 1
         if currentIndex > #options then
             currentIndex = 1
@@ -493,7 +442,7 @@ end
 
 function createToggle(parent, label, default, callback)
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0.25, 0, 1, 0)
+    frame.Size = UDim2.new(0.3, 0, 1, 0)
     frame.Position = UDim2.new(0, 0, 0, 0)
     frame.BackgroundTransparency = 1
     frame.Parent = parent
@@ -503,12 +452,12 @@ function createToggle(parent, label, default, callback)
     toggleButton.BackgroundColor3 = default and Color3.fromRGB(40, 120, 40) or Color3.fromRGB(80, 40, 40)
     toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     toggleButton.Font = Enum.Font.GothamSemibold
-    toggleButton.TextSize = 12
+    toggleButton.TextSize = 11
     toggleButton.Text = label
     toggleButton.Parent = frame
 
     local toggleCorner = Instance.new("UICorner")
-    toggleCorner.CornerRadius = UDim.new(0, 6)
+    toggleCorner.CornerRadius = UDim.new(0, 5)
     toggleCorner.Parent = toggleButton
 
     local state = default
@@ -522,23 +471,28 @@ function createToggle(parent, label, default, callback)
 end
 
 -- ============================================
--- 创建主 UI（所有文本已翻译为中文）
+-- 创建主 UI（手机适配版）
 -- ============================================
 local screenGui
 local mainFrame
 local highlightInput
-local specifiedTargetInput
+
+-- 手机端按钮引用
+local lockBtn
+local hideBtn
 
 local function createUI()
     screenGui = Instance.new("ScreenGui")
     screenGui.Name = "AimbotUI"
     screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
     screenGui.ResetOnSpawn = false
+    screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
+    -- 主UI面板
     mainFrame = Instance.new("Frame")
     mainFrame.Name = "MainFrame"
-    mainFrame.Size = UDim2.new(0, 300, 0, 600)
-    mainFrame.Position = UDim2.new(0.5, -150, 0.5, -300)
+    mainFrame.Size = UDim2.new(0, 180, 0, 320)
+    mainFrame.Position = UDim2.new(1, -190, 0, 50)
     mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
     mainFrame.BackgroundTransparency = 0.1
     mainFrame.BorderSizePixel = 0
@@ -547,7 +501,7 @@ local function createUI()
     mainFrame.Parent = screenGui
 
     local uiCorner = Instance.new("UICorner")
-    uiCorner.CornerRadius = UDim.new(0, 12)
+    uiCorner.CornerRadius = UDim.new(0, 8)
     uiCorner.Parent = mainFrame
 
     local uiStroke = Instance.new("UIStroke")
@@ -556,39 +510,39 @@ local function createUI()
     uiStroke.Parent = mainFrame
 
     local titleBar = Instance.new("Frame")
-    titleBar.Size = UDim2.new(1, 0, 0, 40)
+    titleBar.Size = UDim2.new(1, 0, 0, 28)
     titleBar.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
     titleBar.BorderSizePixel = 0
     titleBar.Parent = mainFrame
 
     local titleCorner = Instance.new("UICorner")
-    titleCorner.CornerRadius = UDim.new(0, 12)
+    titleCorner.CornerRadius = UDim.new(0, 8)
     titleCorner.Parent = titleBar
 
     local titleText = Instance.new("TextLabel")
     titleText.Size = UDim2.new(1, 0, 1, 0)
     titleText.BackgroundTransparency = 1
-    titleText.Text = "🎯 瞄准辅助 + 透视 (H隐藏)"
+    titleText.Text = "🎯 辅助 + ESP"
     titleText.TextColor3 = Color3.fromRGB(200, 200, 255)
     titleText.Font = Enum.Font.GothamBold
-    titleText.TextSize = 18
+    titleText.TextSize = 13
     titleText.TextScaled = true
     titleText.Parent = titleBar
 
     local contentFrame = Instance.new("Frame")
-    contentFrame.Size = UDim2.new(1, -20, 1, -50)
-    contentFrame.Position = UDim2.new(0, 10, 0, 45)
+    contentFrame.Size = UDim2.new(1, -10, 1, -32)
+    contentFrame.Position = UDim2.new(0, 5, 0, 30)
     contentFrame.BackgroundTransparency = 1
     contentFrame.Parent = mainFrame
 
     local uiListLayout = Instance.new("UIListLayout")
-    uiListLayout.Padding = UDim.new(0, 6)
+    uiListLayout.Padding = UDim.new(0, 3)
     uiListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
     uiListLayout.Parent = contentFrame
 
     -- 高亮玩家输入框
     local highlightFrame = Instance.new("Frame")
-    highlightFrame.Size = UDim2.new(1, 0, 0, 40)
+    highlightFrame.Size = UDim2.new(1, 0, 0, 28)
     highlightFrame.BackgroundTransparency = 1
     highlightFrame.Parent = contentFrame
 
@@ -596,10 +550,10 @@ local function createUI()
     highlightLabel.Size = UDim2.new(0.4, 0, 0.5, 0)
     highlightLabel.Position = UDim2.new(0, 0, 0, 0)
     highlightLabel.BackgroundTransparency = 1
-    highlightLabel.Text = "🔍 高亮玩家:"
+    highlightLabel.Text = "🔍 高亮:"
     highlightLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
     highlightLabel.Font = Enum.Font.GothamSemibold
-    highlightLabel.TextSize = 14
+    highlightLabel.TextSize = 11
     highlightLabel.TextXAlignment = Enum.TextXAlignment.Left
     highlightLabel.Parent = highlightFrame
 
@@ -609,14 +563,14 @@ local function createUI()
     highlightInput.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
     highlightInput.TextColor3 = Color3.fromRGB(255, 215, 0)
     highlightInput.Font = Enum.Font.GothamSemibold
-    highlightInput.TextSize = 14
+    highlightInput.TextSize = 11
     highlightInput.Text = ""
-    highlightInput.PlaceholderText = "输入玩家名字..."
+    highlightInput.PlaceholderText = "玩家名字..."
     highlightInput.ClearTextOnFocus = true
     highlightInput.Parent = highlightFrame
 
     local highlightInputCorner = Instance.new("UICorner")
-    highlightInputCorner.CornerRadius = UDim.new(0, 6)
+    highlightInputCorner.CornerRadius = UDim.new(0, 5)
     highlightInputCorner.Parent = highlightInput
 
     local clearHighlightBtn = Instance.new("TextButton")
@@ -625,12 +579,12 @@ local function createUI()
     clearHighlightBtn.BackgroundColor3 = Color3.fromRGB(80, 40, 40)
     clearHighlightBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
     clearHighlightBtn.Font = Enum.Font.GothamSemibold
-    clearHighlightBtn.TextSize = 12
+    clearHighlightBtn.TextSize = 10
     clearHighlightBtn.Text = "清除"
     clearHighlightBtn.Parent = highlightFrame
 
     local clearBtnCorner = Instance.new("UICorner")
-    clearBtnCorner.CornerRadius = UDim.new(0, 6)
+    clearBtnCorner.CornerRadius = UDim.new(0, 5)
     clearBtnCorner.Parent = clearHighlightBtn
 
     highlightInput.FocusLost:Connect(function(enterPressed)
@@ -650,134 +604,28 @@ local function createUI()
         highlightInput.Text = ""
     end)
 
-    -- ============================================
-    -- 新增：锁定模式选择 + 指定目标输入
-    -- ============================================
-    
-    -- 锁定模式选择
-    local lockModeFrame = Instance.new("Frame")
-    lockModeFrame.Size = UDim2.new(1, 0, 0, 30)
-    lockModeFrame.BackgroundTransparency = 1
-    lockModeFrame.Parent = contentFrame
-
-    local lockModeLabel = Instance.new("TextLabel")
-    lockModeLabel.Size = UDim2.new(0.4, 0, 1, 0)
-    lockModeLabel.BackgroundTransparency = 1
-    lockModeLabel.Text = "锁定模式:"
-    lockModeLabel.TextColor3 = Color3.fromRGB(200, 200, 255)
-    lockModeLabel.Font = Enum.Font.GothamSemibold
-    lockModeLabel.TextSize = 14
-    lockModeLabel.TextXAlignment = Enum.TextXAlignment.Left
-    lockModeLabel.Parent = lockModeFrame
-
-    local lockModeOptions = {"最近玩家", "指定玩家"}
-    local lockModeDropdown = createDropdown(lockModeFrame, UDim2.new(0.55, 0, 0, 0), lockModeOptions, "最近玩家", function(value)
-        if value == "最近玩家" then
-            Settings.LockMode = "nearest"
-        elseif value == "指定玩家" then
-            Settings.LockMode = "specified"
-        end
-        -- 切换模式时重置锁定
-        if isLocking then
-            isLocking = false
-            lockedTarget = nil
-        end
-        print("锁定模式已切换为: " .. value)
-    end)
-
-    -- 指定目标输入框
-    local specifiedTargetFrame = Instance.new("Frame")
-    specifiedTargetFrame.Size = UDim2.new(1, 0, 0, 40)
-    specifiedTargetFrame.BackgroundTransparency = 1
-    specifiedTargetFrame.Parent = contentFrame
-
-    local specifiedTargetLabel = Instance.new("TextLabel")
-    specifiedTargetLabel.Size = UDim2.new(0.4, 0, 0.5, 0)
-    specifiedTargetLabel.Position = UDim2.new(0, 0, 0, 0)
-    specifiedTargetLabel.BackgroundTransparency = 1
-    specifiedTargetLabel.Text = "🎯 指定目标:"
-    specifiedTargetLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
-    specifiedTargetLabel.Font = Enum.Font.GothamSemibold
-    specifiedTargetLabel.TextSize = 14
-    specifiedTargetLabel.TextXAlignment = Enum.TextXAlignment.Left
-    specifiedTargetLabel.Parent = specifiedTargetFrame
-
-    specifiedTargetInput = Instance.new("TextBox")
-    specifiedTargetInput.Size = UDim2.new(0.55, 0, 0.5, 0)
-    specifiedTargetInput.Position = UDim2.new(0.45, 0, 0, 0)
-    specifiedTargetInput.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
-    specifiedTargetInput.TextColor3 = Color3.fromRGB(255, 100, 100)
-    specifiedTargetInput.Font = Enum.Font.GothamSemibold
-    specifiedTargetInput.TextSize = 14
-    specifiedTargetInput.Text = ""
-    specifiedTargetInput.PlaceholderText = "输入玩家名字..."
-    specifiedTargetInput.ClearTextOnFocus = true
-    specifiedTargetInput.Parent = specifiedTargetFrame
-
-    local specifiedTargetInputCorner = Instance.new("UICorner")
-    specifiedTargetInputCorner.CornerRadius = UDim.new(0, 6)
-    specifiedTargetInputCorner.Parent = specifiedTargetInput
-
-    local clearTargetBtn = Instance.new("TextButton")
-    clearTargetBtn.Size = UDim2.new(0.3, 0, 0.4, 0)
-    clearTargetBtn.Position = UDim2.new(0.7, 0, 0.55, 0)
-    clearTargetBtn.BackgroundColor3 = Color3.fromRGB(80, 40, 40)
-    clearTargetBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    clearTargetBtn.Font = Enum.Font.GothamSemibold
-    clearTargetBtn.TextSize = 12
-    clearTargetBtn.Text = "清除"
-    clearTargetBtn.Parent = specifiedTargetFrame
-
-    local clearTargetBtnCorner = Instance.new("UICorner")
-    clearTargetBtnCorner.CornerRadius = UDim.new(0, 6)
-    clearTargetBtnCorner.Parent = clearTargetBtn
-
-    specifiedTargetInput.FocusLost:Connect(function(enterPressed)
-        if enterPressed then
-            local name = specifiedTargetInput.Text:gsub("^%s+", ""):gsub("%s+$", "")
-            if name and name ~= "" then
-                Settings.SpecifiedTarget = name
-                print("指定目标已设置为: " .. name)
-            else
-                Settings.SpecifiedTarget = nil
-                print("指定目标已清除")
-            end
-            specifiedTargetInput.Text = ""
-        end
-    end)
-
-    clearTargetBtn.MouseButton1Click:Connect(function()
-        Settings.SpecifiedTarget = nil
-        specifiedTargetInput.Text = ""
-        print("指定目标已清除")
-    end)
-
-    -- ============================================
-    -- 原有UI元素
-    -- ============================================
-
     -- 开关按钮
     local toggleButton = Instance.new("TextButton")
-    toggleButton.Size = UDim2.new(1, 0, 0, 35)
+    toggleButton.Size = UDim2.new(1, 0, 0, 28)
     toggleButton.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
     toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     toggleButton.Font = Enum.Font.GothamSemibold
-    toggleButton.TextSize = 16
-    toggleButton.Text = "🔴 瞄准辅助: 关闭"
+    toggleButton.TextSize = 13
+    toggleButton.Text = "🔴 瞄准: 关闭"
     toggleButton.Parent = contentFrame
 
     local toggleCorner = Instance.new("UICorner")
-    toggleCorner.CornerRadius = UDim.new(0, 8)
+    toggleCorner.CornerRadius = UDim.new(0, 6)
     toggleCorner.Parent = toggleButton
 
     toggleButton.MouseButton1Click:Connect(function()
         Settings.Enabled = not Settings.Enabled
         if Settings.Enabled then
-            toggleButton.Text = "🟢 瞄准辅助: 开启"
+            toggleButton.Text = "🟢 瞄准: 开启"
             toggleButton.BackgroundColor3 = Color3.fromRGB(40, 80, 40)
             FOVCircle.Visible = Settings.ShowFOV
         else
-            toggleButton.Text = "🔴 瞄准辅助: 关闭"
+            toggleButton.Text = "🔴 瞄准: 关闭"
             toggleButton.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
             FOVCircle.Visible = false
             if isLocking then
@@ -790,7 +638,7 @@ local function createUI()
 
     -- 锁定模式
     local modeRow = Instance.new("Frame")
-    modeRow.Size = UDim2.new(1, 0, 0, 30)
+    modeRow.Size = UDim2.new(1, 0, 0, 24)
     modeRow.BackgroundTransparency = 1
     modeRow.Parent = contentFrame
 
@@ -800,7 +648,7 @@ local function createUI()
     modeLabel.Text = "锁定模式:"
     modeLabel.TextColor3 = Color3.fromRGB(200, 200, 255)
     modeLabel.Font = Enum.Font.GothamSemibold
-    modeLabel.TextSize = 14
+    modeLabel.TextSize = 11
     modeLabel.TextXAlignment = Enum.TextXAlignment.Left
     modeLabel.Parent = modeRow
 
@@ -810,20 +658,20 @@ local function createUI()
     modeButton.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
     modeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     modeButton.Font = Enum.Font.GothamSemibold
-    modeButton.TextSize = 14
-    modeButton.Text = "切换 (E)"
+    modeButton.TextSize = 12
+    modeButton.Text = "切换(E)"
     modeButton.Parent = modeRow
 
     local modeCorner = Instance.new("UICorner")
-    modeCorner.CornerRadius = UDim.new(0, 6)
+    modeCorner.CornerRadius = UDim.new(0, 5)
     modeCorner.Parent = modeButton
 
     modeButton.MouseButton1Click:Connect(function()
         Settings.HoldToLock = not Settings.HoldToLock
         if Settings.HoldToLock then
-            modeButton.Text = "按住 (右键)"
+            modeButton.Text = "按住(右键)"
         else
-            modeButton.Text = "切换 (E)"
+            modeButton.Text = "切换(E)"
         end
         if isLocking then
             isLocking = false
@@ -833,30 +681,30 @@ local function createUI()
     end)
 
     -- FOV 滑块
-    local fovSliderFrame = createSlider(contentFrame, "视野范围: " .. Settings.FOV, 10, 300, Settings.FOV, function(value)
+    local fovSliderFrame = createSlider(contentFrame, "视野: " .. Settings.FOV, 10, 300, Settings.FOV, function(value)
         Settings.FOV = value
-        fovSliderFrame.label.Text = "视野范围: " .. value
+        fovSliderFrame.label.Text = "视野: " .. value
     end)
 
     -- 平滑度滑块
-    local smoothSliderFrame = createSlider(contentFrame, "平滑度: " .. string.format("%.2f", Settings.Smoothness), 0.01, 1, Settings.Smoothness, function(value)
+    local smoothSliderFrame = createSlider(contentFrame, "平滑: " .. string.format("%.2f", Settings.Smoothness), 0.01, 1, Settings.Smoothness, function(value)
         Settings.Smoothness = value
-        smoothSliderFrame.label.Text = "平滑度: " .. string.format("%.2f", value)
+        smoothSliderFrame.label.Text = "平滑: " .. string.format("%.2f", value)
     end)
 
     -- 部位下拉菜单
     local partFrame = Instance.new("Frame")
-    partFrame.Size = UDim2.new(1, 0, 0, 30)
+    partFrame.Size = UDim2.new(1, 0, 0, 24)
     partFrame.BackgroundTransparency = 1
     partFrame.Parent = contentFrame
 
     local partLabel = Instance.new("TextLabel")
     partLabel.Size = UDim2.new(0.4, 0, 1, 0)
     partLabel.BackgroundTransparency = 1
-    partLabel.Text = "瞄准部位:"
+    partLabel.Text = "部位:"
     partLabel.TextColor3 = Color3.fromRGB(200, 200, 255)
     partLabel.Font = Enum.Font.GothamSemibold
-    partLabel.TextSize = 14
+    partLabel.TextSize = 11
     partLabel.TextXAlignment = Enum.TextXAlignment.Left
     partLabel.Parent = partFrame
 
@@ -869,22 +717,22 @@ local function createUI()
         elseif value == "躯干" then
             Settings.AimPart = "Torso"
         end
-        print("瞄准部位已切换为: " .. value .. " -> " .. Settings.AimPart)
+        print("部位已切换: " .. value .. " -> " .. Settings.AimPart)
     end)
 
     -- 按键绑定
     local keybindFrame = Instance.new("Frame")
-    keybindFrame.Size = UDim2.new(1, 0, 0, 30)
+    keybindFrame.Size = UDim2.new(1, 0, 0, 24)
     keybindFrame.BackgroundTransparency = 1
     keybindFrame.Parent = contentFrame
 
     local keybindLabel = Instance.new("TextLabel")
     keybindLabel.Size = UDim2.new(0.4, 0, 1, 0)
     keybindLabel.BackgroundTransparency = 1
-    keybindLabel.Text = "锁定按键:"
+    keybindLabel.Text = "按键:"
     keybindLabel.TextColor3 = Color3.fromRGB(200, 200, 255)
     keybindLabel.Font = Enum.Font.GothamSemibold
-    keybindLabel.TextSize = 14
+    keybindLabel.TextSize = 11
     keybindLabel.TextXAlignment = Enum.TextXAlignment.Left
     keybindLabel.Parent = keybindFrame
 
@@ -894,12 +742,12 @@ local function createUI()
     keybindButton.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
     keybindButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     keybindButton.Font = Enum.Font.GothamSemibold
-    keybindButton.TextSize = 14
+    keybindButton.TextSize = 12
     keybindButton.Text = "E"
     keybindButton.Parent = keybindFrame
 
     local keybindCorner = Instance.new("UICorner")
-    keybindCorner.CornerRadius = UDim.new(0, 6)
+    keybindCorner.CornerRadius = UDim.new(0, 5)
     keybindCorner.Parent = keybindButton
 
     keybindButton.MouseButton1Click:Connect(function()
@@ -911,7 +759,7 @@ local function createUI()
 
     -- 辅助开关
     local optionsFrame = Instance.new("Frame")
-    optionsFrame.Size = UDim2.new(1, 0, 0, 30)
+    optionsFrame.Size = UDim2.new(1, 0, 0, 24)
     optionsFrame.BackgroundTransparency = 1
     optionsFrame.Parent = contentFrame
 
@@ -935,7 +783,7 @@ local function createUI()
 
     -- ESP开关
     local espToggleFrame = Instance.new("Frame")
-    espToggleFrame.Size = UDim2.new(1, 0, 0, 30)
+    espToggleFrame.Size = UDim2.new(1, 0, 0, 24)
     espToggleFrame.BackgroundTransparency = 1
     espToggleFrame.Parent = contentFrame
 
@@ -945,7 +793,7 @@ local function createUI()
     espToggleLabel.Text = "透视:"
     espToggleLabel.TextColor3 = Color3.fromRGB(200, 200, 255)
     espToggleLabel.Font = Enum.Font.GothamSemibold
-    espToggleLabel.TextSize = 14
+    espToggleLabel.TextSize = 11
     espToggleLabel.TextXAlignment = Enum.TextXAlignment.Left
     espToggleLabel.Parent = espToggleFrame
 
@@ -955,12 +803,12 @@ local function createUI()
     espToggleButton.BackgroundColor3 = Color3.fromRGB(40, 120, 40)
     espToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     espToggleButton.Font = Enum.Font.GothamSemibold
-    espToggleButton.TextSize = 14
+    espToggleButton.TextSize = 12
     espToggleButton.Text = "开启"
     espToggleButton.Parent = espToggleFrame
 
     local espCorner = Instance.new("UICorner")
-    espCorner.CornerRadius = UDim.new(0, 6)
+    espCorner.CornerRadius = UDim.new(0, 5)
     espCorner.Parent = espToggleButton
 
     espToggleButton.MouseButton1Click:Connect(function()
@@ -976,7 +824,7 @@ local function createUI()
 
     -- 准星开关
     local crosshairRow = Instance.new("Frame")
-    crosshairRow.Size = UDim2.new(1, 0, 0, 30)
+    crosshairRow.Size = UDim2.new(1, 0, 0, 24)
     crosshairRow.BackgroundTransparency = 1
     crosshairRow.Parent = contentFrame
 
@@ -986,7 +834,7 @@ local function createUI()
     crosshairLabel.Text = "准星:"
     crosshairLabel.TextColor3 = Color3.fromRGB(200, 200, 255)
     crosshairLabel.Font = Enum.Font.GothamSemibold
-    crosshairLabel.TextSize = 14
+    crosshairLabel.TextSize = 11
     crosshairLabel.TextXAlignment = Enum.TextXAlignment.Left
     crosshairLabel.Parent = crosshairRow
 
@@ -996,12 +844,12 @@ local function createUI()
     crosshairButton.BackgroundColor3 = Color3.fromRGB(40, 120, 40)
     crosshairButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     crosshairButton.Font = Enum.Font.GothamSemibold
-    crosshairButton.TextSize = 14
+    crosshairButton.TextSize = 12
     crosshairButton.Text = "开启"
     crosshairButton.Parent = crosshairRow
 
     local crossCorner = Instance.new("UICorner")
-    crossCorner.CornerRadius = UDim.new(0, 6)
+    crossCorner.CornerRadius = UDim.new(0, 5)
     crossCorner.Parent = crosshairButton
 
     crosshairButton.MouseButton1Click:Connect(function()
@@ -1014,6 +862,132 @@ local function createUI()
             crosshairButton.BackgroundColor3 = Color3.fromRGB(80, 40, 40)
         end
     end)
+
+    -- ============================================
+    -- 手机端专用按钮（仅在触摸设备上显示）
+    -- ============================================
+    if isMobile then
+        -- 1. 隐藏UI按钮 - 固定在屏幕最上方，不会被遮挡
+        hideBtn = Instance.new("TextButton")
+        hideBtn.Size = UDim2.new(0, 40, 0, 40)
+        hideBtn.Position = UDim2.new(1, -50, 0, 5)
+        hideBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+        hideBtn.TextColor3 = Color3.fromRGB(200, 200, 255)
+        hideBtn.Font = Enum.Font.GothamSemibold
+        hideBtn.TextSize = 20
+        hideBtn.Text = "✕"
+        hideBtn.ZIndex = 10
+        hideBtn.Parent = screenGui
+
+        local hideBtnCorner = Instance.new("UICorner")
+        hideBtnCorner.CornerRadius = UDim.new(0, 10)
+        hideBtnCorner.Parent = hideBtn
+
+        hideBtn.MouseButton1Click:Connect(function()
+            Settings.UIVisible = not Settings.UIVisible
+            mainFrame.Visible = Settings.UIVisible
+            if Settings.UIVisible then
+                hideBtn.Text = "✕"
+                hideBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+            else
+                hideBtn.Text = "☰"
+                hideBtn.BackgroundColor3 = Color3.fromRGB(40, 80, 40)
+            end
+        end)
+
+        -- 2. 缩小并上移的锁定按钮：尺寸 75x35，位置从 0.85 上移到 0.75
+        lockBtn = Instance.new("TextButton")
+        lockBtn.Size = UDim2.new(0, 75, 0, 35)  -- 缩小
+        lockBtn.Position = UDim2.new(0.5, -37, 0.75, -17)  -- 上移
+        lockBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+        lockBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        lockBtn.Font = Enum.Font.GothamSemibold
+        lockBtn.TextSize = 13  -- 字号缩小
+        lockBtn.Text = "🔒 锁定"
+        lockBtn.ZIndex = 10
+        lockBtn.Parent = screenGui
+
+        local lockBtnCorner = Instance.new("UICorner")
+        lockBtnCorner.CornerRadius = UDim.new(0, 8)
+        lockBtnCorner.Parent = lockBtn
+
+        lockBtn.MouseButton1Click:Connect(function()
+            if isLocking then
+                isLocking = false
+                lockedTarget = nil
+                holdLocking = false
+                lockBtn.Text = "🔒 锁定"
+                lockBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+            else
+                lockedTarget = getClosestPlayer()
+                if lockedTarget then
+                    isLocking = true
+                    lockBtn.Text = "🔓 解锁"
+                    lockBtn.BackgroundColor3 = Color3.fromRGB(120, 40, 40)
+                end
+            end
+        end)
+
+        -- 3. 缩小并上移的切换模式按钮：尺寸 65x32，位置从 0.85 上移到 0.75
+        local modeMobileBtn = Instance.new("TextButton")
+        modeMobileBtn.Size = UDim2.new(0, 65, 0, 32)  -- 缩小
+        modeMobileBtn.Position = UDim2.new(0.5, -115, 0.75, -16)  -- 上移，X偏移调整
+        modeMobileBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+        modeMobileBtn.TextColor3 = Color3.fromRGB(200, 200, 255)
+        modeMobileBtn.Font = Enum.Font.GothamSemibold
+        modeMobileBtn.TextSize = 11  -- 字号缩小
+        modeMobileBtn.Text = "切换模式"
+        modeMobileBtn.ZIndex = 10
+        modeMobileBtn.Parent = screenGui
+
+        local modeMobileCorner = Instance.new("UICorner")
+        modeMobileCorner.CornerRadius = UDim.new(0, 7)
+        modeMobileCorner.Parent = modeMobileBtn
+
+        modeMobileBtn.MouseButton1Click:Connect(function()
+            Settings.HoldToLock = not Settings.HoldToLock
+            if Settings.HoldToLock then
+                modeMobileBtn.Text = "按住模式"
+                modeMobileBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 40)
+            else
+                modeMobileBtn.Text = "切换模式"
+                modeMobileBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+            end
+            if isLocking then
+                isLocking = false
+                lockedTarget = nil
+                holdLocking = false
+                lockBtn.Text = "🔒 锁定"
+                lockBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+            end
+        end)
+
+        -- 4. 缩小并上移的高亮按钮：尺寸 65x32，位置从 0.85 上移到 0.75
+        local highlightMobileBtn = Instance.new("TextButton")
+        highlightMobileBtn.Size = UDim2.new(0, 65, 0, 32)  -- 缩小
+        highlightMobileBtn.Position = UDim2.new(0.5, 50, 0.75, -16)  -- 上移，X偏移调整
+        highlightMobileBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 40)
+        highlightMobileBtn.TextColor3 = Color3.fromRGB(255, 215, 0)
+        highlightMobileBtn.Font = Enum.Font.GothamSemibold
+        highlightMobileBtn.TextSize = 11  -- 字号缩小
+        highlightMobileBtn.Text = "⭐ 高亮"
+        highlightMobileBtn.ZIndex = 10
+        highlightMobileBtn.Parent = screenGui
+
+        local highlightMobileCorner = Instance.new("UICorner")
+        highlightMobileCorner.CornerRadius = UDim.new(0, 7)
+        highlightMobileCorner.Parent = highlightMobileBtn
+
+        highlightMobileBtn.MouseButton1Click:Connect(function()
+            local closest = getClosestPlayer()
+            if closest then
+                highlightSpecificPlayer(closest.Name)
+                if highlightInput then
+                    highlightInput.Text = closest.Name
+                end
+            end
+        end)
+    end
 end
 
 -- ============================================
@@ -1022,12 +996,15 @@ end
 createUI()
 
 -- ============================================
--- 按键监听
+-- 按键监听（PC端保留键盘支持，手机端通过按钮操作）
 -- ============================================
 local connections = {}
 
 table.insert(connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
+    
+    -- 手机端不处理键盘事件
+    if isMobile then return end
 
     -- 隐藏/显示 UI（按H键）
     if input.KeyCode == Settings.HideKey then
@@ -1067,12 +1044,9 @@ table.insert(connections, UserInputService.InputBegan:Connect(function(input, ga
             isLocking = false
             lockedTarget = nil
         else
-            lockedTarget = getLockTarget()
+            lockedTarget = getClosestPlayer()
             if lockedTarget then
                 isLocking = true
-                if Settings.LockMode == "specified" then
-                    print("已锁定指定玩家: " .. lockedTarget.Name)
-                end
             end
         end
     end
@@ -1080,18 +1054,18 @@ table.insert(connections, UserInputService.InputBegan:Connect(function(input, ga
     -- 按住模式
     if Settings.HoldToLock and input.UserInputType == Enum.UserInputType.MouseButton2 then
         holdLocking = true
-        lockedTarget = getLockTarget()
+        lockedTarget = getClosestPlayer()
         if lockedTarget then
             isLocking = true
-            if Settings.LockMode == "specified" then
-                print("已锁定指定玩家: " .. lockedTarget.Name)
-            end
         end
     end
 end))
 
 table.insert(connections, UserInputService.InputEnded:Connect(function(input, gameProcessed)
     if gameProcessed then return end
+    
+    -- 手机端不处理键盘事件
+    if isMobile then return end
 
     if Settings.HoldToLock and input.UserInputType == Enum.UserInputType.MouseButton2 then
         holdLocking = false
@@ -1132,11 +1106,16 @@ RunService.RenderStepped:Connect(function()
                 lockedTarget = nil
                 isLocking = false
                 holdLocking = false
+                -- 手机端更新锁定按钮文字
+                if isMobile and lockBtn then
+                    lockBtn.Text = "🔒 锁定"
+                    lockBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+                end
             end
         end
         
         if not hasTarget then
-            local closestPlayer = getLockTarget()
+            local closestPlayer = getClosestPlayer()
             if closestPlayer then
                 hasTarget = true
             end
@@ -1174,17 +1153,26 @@ RunService.RenderStepped:Connect(function()
                 Settings.Smoothness
             )
         else
-            lockedTarget = getLockTarget()
+            lockedTarget = getClosestPlayer()
             if not lockedTarget and not holdLocking then
                 if not Settings.HoldToLock then
                     isLocking = false
+                    -- 手机端更新锁定按钮文字
+                    if isMobile and lockBtn then
+                        lockBtn.Text = "🔒 锁定"
+                        lockBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+                    end
                 end
             elseif not lockedTarget and holdLocking then
                 isLocking = false
+                if isMobile and lockBtn then
+                    lockBtn.Text = "🔒 锁定"
+                    lockBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+                end
             end
         end
     elseif Settings.Enabled and not isLocking and Settings.AutoLock and not Settings.HoldToLock then
-        local target = getLockTarget()
+        local target = getClosestPlayer()
         if target then
             FOVCircle.Color = Color3.fromRGB(100, 255, 100)
         else
