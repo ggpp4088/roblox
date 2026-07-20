@@ -895,20 +895,20 @@ local function createUI()
             end
         end)
 
-        -- 2. 锁定/解锁按钮 - 屏幕底部中间
+        -- 2. 缩小并上移的锁定按钮：尺寸 75x35，位置从 0.85 上移到 0.75
         lockBtn = Instance.new("TextButton")
-        lockBtn.Size = UDim2.new(0, 100, 0, 45)
-        lockBtn.Position = UDim2.new(0.5, -50, 0.85, -22)
+        lockBtn.Size = UDim2.new(0, 75, 0, 35)  -- 缩小
+        lockBtn.Position = UDim2.new(0.5, -37, 0.75, -17)  -- 上移
         lockBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
         lockBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
         lockBtn.Font = Enum.Font.GothamSemibold
-        lockBtn.TextSize = 16
+        lockBtn.TextSize = 13  -- 字号缩小
         lockBtn.Text = "🔒 锁定"
         lockBtn.ZIndex = 10
         lockBtn.Parent = screenGui
 
         local lockBtnCorner = Instance.new("UICorner")
-        lockBtnCorner.CornerRadius = UDim.new(0, 10)
+        lockBtnCorner.CornerRadius = UDim.new(0, 8)
         lockBtnCorner.Parent = lockBtn
 
         lockBtn.MouseButton1Click:Connect(function()
@@ -928,20 +928,20 @@ local function createUI()
             end
         end)
 
-        -- 3. 切换模式按钮 - 锁定按钮左侧
+        -- 3. 缩小并上移的切换模式按钮：尺寸 65x32，位置从 0.85 上移到 0.75
         local modeMobileBtn = Instance.new("TextButton")
-        modeMobileBtn.Size = UDim2.new(0, 85, 0, 40)
-        modeMobileBtn.Position = UDim2.new(0.5, -145, 0.85, -20)
+        modeMobileBtn.Size = UDim2.new(0, 65, 0, 32)  -- 缩小
+        modeMobileBtn.Position = UDim2.new(0.5, -115, 0.75, -16)  -- 上移，X偏移调整
         modeMobileBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
         modeMobileBtn.TextColor3 = Color3.fromRGB(200, 200, 255)
         modeMobileBtn.Font = Enum.Font.GothamSemibold
-        modeMobileBtn.TextSize = 13
+        modeMobileBtn.TextSize = 11  -- 字号缩小
         modeMobileBtn.Text = "切换模式"
         modeMobileBtn.ZIndex = 10
         modeMobileBtn.Parent = screenGui
 
         local modeMobileCorner = Instance.new("UICorner")
-        modeMobileCorner.CornerRadius = UDim.new(0, 8)
+        modeMobileCorner.CornerRadius = UDim.new(0, 7)
         modeMobileCorner.Parent = modeMobileBtn
 
         modeMobileBtn.MouseButton1Click:Connect(function()
@@ -962,20 +962,20 @@ local function createUI()
             end
         end)
 
-        -- 4. 高亮按钮 - 锁定按钮右侧
+        -- 4. 缩小并上移的高亮按钮：尺寸 65x32，位置从 0.85 上移到 0.75
         local highlightMobileBtn = Instance.new("TextButton")
-        highlightMobileBtn.Size = UDim2.new(0, 85, 0, 40)
-        highlightMobileBtn.Position = UDim2.new(0.5, 60, 0.85, -20)
+        highlightMobileBtn.Size = UDim2.new(0, 65, 0, 32)  -- 缩小
+        highlightMobileBtn.Position = UDim2.new(0.5, 50, 0.75, -16)  -- 上移，X偏移调整
         highlightMobileBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 40)
         highlightMobileBtn.TextColor3 = Color3.fromRGB(255, 215, 0)
         highlightMobileBtn.Font = Enum.Font.GothamSemibold
-        highlightMobileBtn.TextSize = 13
+        highlightMobileBtn.TextSize = 11  -- 字号缩小
         highlightMobileBtn.Text = "⭐ 高亮"
         highlightMobileBtn.ZIndex = 10
         highlightMobileBtn.Parent = screenGui
 
         local highlightMobileCorner = Instance.new("UICorner")
-        highlightMobileCorner.CornerRadius = UDim.new(0, 8)
+        highlightMobileCorner.CornerRadius = UDim.new(0, 7)
         highlightMobileCorner.Parent = highlightMobileBtn
 
         highlightMobileBtn.MouseButton1Click:Connect(function()
