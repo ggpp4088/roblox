@@ -88,6 +88,11 @@ local isLocking = false
 local holdLocking = false
 
 -- ============================================
+-- 检测是否为手机设备
+-- ============================================
+local isMobile = UserInputService.TouchEnabled and not UserInputService.MouseEnabled
+
+-- ============================================
 -- 高亮指定玩家
 -- ============================================
 local highlightedPlayerName = nil
@@ -472,6 +477,10 @@ local screenGui
 local mainFrame
 local highlightInput
 
+-- 手机端按钮引用
+local lockBtn
+local hideBtn
+
 local function createUI()
     screenGui = Instance.new("ScreenGui")
     screenGui.Name = "AimbotUI"
@@ -855,6 +864,127 @@ local function createUI()
             crosshairButton.BackgroundColor3 = Color3.fromRGB(80, 40, 40)
         end
     end)
+
+    -- ============================================
+    -- 手机端专用按钮（仅在触摸设备上显示）
+    -- ============================================
+    if isMobile then
+        -- 1. 锁定/解锁按钮 - 屏幕底部中间
+        lockBtn = Instance.new("TextButton")
+        lockBtn.Size = UDim2.new(0, 90, 0, 40)
+        lockBtn.Position = UDim2.new(0.5, -45, 0.85, -20)
+        lockBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+        lockBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        lockBtn.Font = Enum.Font.GothamSemibold
+        lockBtn.TextSize = 15
+        lockBtn.Text = "🔒 锁定"
+        lockBtn.Parent = screenGui
+
+        local lockBtnCorner = Instance.new("UICorner")
+        lockBtnCorner.CornerRadius = UDim.new(0, 8)
+        lockBtnCorner.Parent = lockBtn
+
+        lockBtn.MouseButton1Click:Connect(function()
+            if isLocking then
+                isLocking = false
+                lockedTarget = nil
+                holdLocking = false
+                lockBtn.Text = "🔒 锁定"
+                lockBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+            else
+                lockedTarget = getClosestPlayer()
+                if lockedTarget then
+                    isLocking = true
+                    lockBtn.Text = "🔓 解锁"
+                    lockBtn.BackgroundColor3 = Color3.fromRGB(120, 40, 40)
+                end
+            end
+        end)
+
+        -- 2. 隐藏UI按钮 - 右上角
+        hideBtn = Instance.new("TextButton")
+        hideBtn.Size = UDim2.new(0, 36, 0, 36)
+        hideBtn.Position = UDim2.new(1, -46, 0, 6)
+        hideBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+        hideBtn.TextColor3 = Color3.fromRGB(200, 200, 255)
+        hideBtn.Font = Enum.Font.GothamSemibold
+        hideBtn.TextSize = 18
+        hideBtn.Text = "✕"
+        hideBtn.Parent = screenGui
+
+        local hideBtnCorner = Instance.new("UICorner")
+        hideBtnCorner.CornerRadius = UDim.new(0, 8)
+        hideBtnCorner.Parent = hideBtn
+
+        hideBtn.MouseButton1Click:Connect(function()
+            Settings.UIVisible = not Settings.UIVisible
+            mainFrame.Visible = Settings.UIVisible
+            if Settings.UIVisible then
+                hideBtn.Text = "✕"
+            else
+                hideBtn.Text = "☰"
+            end
+        end)
+
+        -- 3. 切换模式按钮 - 锁定按钮旁边
+        local modeMobileBtn = Instance.new("TextButton")
+        modeMobileBtn.Size = UDim2.new(0, 80, 0, 36)
+        modeMobileBtn.Position = UDim2.new(0.5, -135, 0.85, -18)
+        modeMobileBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+        modeMobileBtn.TextColor3 = Color3.fromRGB(200, 200, 255)
+        modeMobileBtn.Font = Enum.Font.GothamSemibold
+        modeMobileBtn.TextSize = 12
+        modeMobileBtn.Text = "切换模式"
+        modeMobileBtn.Parent = screenGui
+
+        local modeMobileCorner = Instance.new("UICorner")
+        modeMobileCorner.CornerRadius = UDim.new(0, 6)
+        modeMobileCorner.Parent = modeMobileBtn
+
+        modeMobileBtn.MouseButton1Click:Connect(function()
+            Settings.HoldToLock = not Settings.HoldToLock
+            if Settings.HoldToLock then
+                modeMobileBtn.Text = "按住模式"
+                modeMobileBtn.BackgroundColor3 = Color3.fromRGB(120, 80, 40)
+            else
+                modeMobileBtn.Text = "切换模式"
+                modeMobileBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+            end
+            if isLocking then
+                isLocking = false
+                lockedTarget = nil
+                holdLocking = false
+                lockBtn.Text = "🔒 锁定"
+                lockBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+            end
+        end)
+
+        -- 4. 高亮鼠标下的玩家按钮（替代Y键）
+        local highlightMobileBtn = Instance.new("TextButton")
+        highlightMobileBtn.Size = UDim2.new(0, 80, 0, 36)
+        highlightMobileBtn.Position = UDim2.new(0.5, 55, 0.85, -18)
+        highlightMobileBtn.BackgroundColor3 = Color3.fromRGB(80, 80, 40)
+        highlightMobileBtn.TextColor3 = Color3.fromRGB(255, 215, 0)
+        highlightMobileBtn.Font = Enum.Font.GothamSemibold
+        highlightMobileBtn.TextSize = 12
+        highlightMobileBtn.Text = "⭐ 高亮"
+        highlightMobileBtn.Parent = screenGui
+
+        local highlightMobileCorner = Instance.new("UICorner")
+        highlightMobileCorner.CornerRadius = UDim.new(0, 6)
+        highlightMobileCorner.Parent = highlightMobileBtn
+
+        highlightMobileBtn.MouseButton1Click:Connect(function()
+            -- 模拟Y键功能：高亮最近的玩家
+            local closest = getClosestPlayer()
+            if closest then
+                highlightSpecificPlayer(closest.Name)
+                if highlightInput then
+                    highlightInput.Text = closest.Name
+                end
+            end
+        end)
+    end
 end
 
 -- ============================================
@@ -863,12 +993,15 @@ end
 createUI()
 
 -- ============================================
--- 按键监听
+-- 按键监听（PC端保留键盘支持，手机端通过按钮操作）
 -- ============================================
 local connections = {}
 
 table.insert(connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
+    
+    -- 手机端不处理键盘事件
+    if isMobile then return end
 
     -- 隐藏/显示 UI（按H键）
     if input.KeyCode == Settings.HideKey then
@@ -927,6 +1060,9 @@ end))
 
 table.insert(connections, UserInputService.InputEnded:Connect(function(input, gameProcessed)
     if gameProcessed then return end
+    
+    -- 手机端不处理键盘事件
+    if isMobile then return end
 
     if Settings.HoldToLock and input.UserInputType == Enum.UserInputType.MouseButton2 then
         holdLocking = false
@@ -967,6 +1103,11 @@ RunService.RenderStepped:Connect(function()
                 lockedTarget = nil
                 isLocking = false
                 holdLocking = false
+                -- 手机端更新锁定按钮文字
+                if isMobile and lockBtn then
+                    lockBtn.Text = "🔒 锁定"
+                    lockBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+                end
             end
         end
         
@@ -1013,9 +1154,18 @@ RunService.RenderStepped:Connect(function()
             if not lockedTarget and not holdLocking then
                 if not Settings.HoldToLock then
                     isLocking = false
+                    -- 手机端更新锁定按钮文字
+                    if isMobile and lockBtn then
+                        lockBtn.Text = "🔒 锁定"
+                        lockBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+                    end
                 end
             elseif not lockedTarget and holdLocking then
                 isLocking = false
+                if isMobile and lockBtn then
+                    lockBtn.Text = "🔒 锁定"
+                    lockBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 70)
+                end
             end
         end
     elseif Settings.Enabled and not isLocking and Settings.AutoLock and not Settings.HoldToLock then
