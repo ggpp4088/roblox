@@ -1,10 +1,9 @@
 if game.PlaceId == 13822889 then
-    loadstring(game:HttpGet('https://raw.githubusercontent.com/ggpp4088/roblox/refs/heads/main/hub/1.lua'))("")
-    loadstring(game:HttpGet('https://raw.githubusercontent.com/ggpp4088/roblox/refs/heads/main/ddcs.lua'))("")
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/DevKron/Kron_Hub/refs/heads/main/lt2new'))("")
 elseif game.PlaceId == 1537690962 then
-    loadstring(game:HttpGet('https://raw.githubusercontent.com/ggpp4088/roblox/refs/heads/main/hub/boos.lua'))("")
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/DevKron/Kron_Hub/refs/heads/main/bss'))("")
 elseif game.PlaceId == 189707 then
-    loadstring(game:HttpGet('https://raw.githubusercontent.com/ggpp4088/roblox/refs/heads/main/hub/bss.lua'))("")
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/DevKron/Kron_Hub/refs/heads/main/nds'))("")
 elseif game.PlaceId == 3956818381 then
     loadstring(game:HttpGet('https://raw.githubusercontent.com/ggpp4088/roblox/refs/heads/main/hub/bss.lua'))("")
 elseif game.PlaceId == 8343259840 then
