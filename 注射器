@@ -1,0 +1,218 @@
+-- 服务
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local GuiService = game:GetService("GuiService")
+local LocalPlayer = Players.LocalPlayer
+
+-- 隐藏/显示按键
+local TOGGLE_KEY = Enum.KeyCode.F5
+
+-- 清理旧UI
+if game.CoreGui:FindFirstChild("ScriptExecutor") then
+    game.CoreGui.ScriptExecutor:Destroy()
+end
+
+-- 创建主UI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ScriptExecutor"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = game.CoreGui
+ScreenGui.IgnoreGuiInset = true
+
+-- 主框架
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 480, 0, 320)
+MainFrame.Position = UDim2.new(0.5, -240, 0.5, -160)
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = false
+MainFrame.Visible = true
+MainFrame.ClipsDescendants = true
+MainFrame.Parent = ScreenGui
+
+-- 圆角
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.Parent = MainFrame
+
+-- 背景遮罩层
+local Background = Instance.new("Frame")
+Background.Size = UDim2.new(1, 0, 1, 0)
+Background.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Background.BackgroundTransparency = 0.5
+Background.BorderSizePixel = 0
+Background.ZIndex = 0
+Background.Parent = ScreenGui
+
+-- 标题栏
+local TitleBar = Instance.new("Frame")
+TitleBar.Size = UDim2.new(1, 0, 0, 40)
+TitleBar.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+TitleBar.BorderSizePixel = 0
+TitleBar.Parent = MainFrame
+
+local UICornerTitle = Instance.new("UICorner")
+UICornerTitle.CornerRadius = UDim.new(0, 10)
+UICornerTitle.Parent = TitleBar
+
+-- 标题文字
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Size = UDim2.new(1, -10, 1, 0)
+TitleLabel.Position = UDim2.new(0, 10, 0, 0)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.TextColor3 = Color3.new(1, 1, 1)
+TitleLabel.Text = "⚡ 脚本执行器"
+TitleLabel.Font = Enum.Font.SourceSansBold
+TitleLabel.TextSize = 18
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+TitleLabel.Parent = TitleBar
+
+-- 关闭按钮
+local CloseButton = Instance.new("TextButton")
+CloseButton.Size = UDim2.new(0, 28, 0, 28)
+CloseButton.Position = UDim2.new(1, -36, 0, 6)
+CloseButton.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+CloseButton.TextColor3 = Color3.new(1, 1, 1)
+CloseButton.Text = "✕"
+CloseButton.Font = Enum.Font.SourceSansBold
+CloseButton.TextSize = 16
+CloseButton.BackgroundTransparency = 0
+CloseButton.Parent = TitleBar
+
+CloseButton.MouseButton1Click:Connect(function()
+    -- 自动保存脚本内容
+    _G.savedScript = TextBox.Text
+    ScreenGui:Destroy()
+end)
+
+-- 输入框
+local TextBox = Instance.new("TextBox")
+TextBox.Size = UDim2.new(1, -20, 0.6, -10)
+TextBox.Position = UDim2.new(0, 10, 0, 50)
+TextBox.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
+TextBox.TextColor3 = Color3.new(0.8, 0.8, 0.8)
+TextBox.TextXAlignment = Enum.TextXAlignment.Left
+TextBox.TextYAlignment = Enum.TextYAlignment.Top
+TextBox.Font = Enum.Font.Code
+TextBox.TextSize = 14
+TextBox.MultiLine = true
+TextBox.ClearTextOnFocus = false
+TextBox.Text = _G.savedScript or "-- 在这里粘贴你的脚本\n"
+TextBox.BackgroundTransparency = 0
+TextBox.Parent = MainFrame
+
+-- 圆角输入框
+local UICornerTextBox = Instance.new("UICorner")
+UICornerTextBox.CornerRadius = UDim.new(0, 6)
+UICornerTextBox.Parent = TextBox
+
+-- 底部按钮区域
+local ButtonFrame = Instance.new("Frame")
+ButtonFrame.Size = UDim2.new(1, -20, 0, 40)
+ButtonFrame.Position = UDim2.new(0, 10, 0, 0.72)
+ButtonFrame.BackgroundTransparency = 1
+ButtonFrame.Parent = MainFrame
+
+-- 执行按钮
+local ExecuteButton = Instance.new("TextButton")
+ExecuteButton.Size = UDim2.new(0.45, 0, 0, 34)
+ExecuteButton.Position = UDim2.new(0, 0, 0, 3)
+ExecuteButton.BackgroundColor3 = Color3.fromRGB(40, 120, 60)
+ExecuteButton.TextColor3 = Color3.new(1, 1, 1)
+ExecuteButton.Font = Enum.Font.SourceSansBold
+ExecuteButton.TextSize = 16
+ExecuteButton.Text = "▶ 执行"
+ExecuteButton.BackgroundTransparency = 0
+ExecuteButton.Parent = ButtonFrame
+
+local UICornerExec = Instance.new("UICorner")
+UICornerExec.CornerRadius = UDim.new(0, 6)
+UICornerExec.Parent = ExecuteButton
+
+-- 清除按钮
+local ClearButton = Instance.new("TextButton")
+ClearButton.Size = UDim2.new(0.45, 0, 0, 34)
+ClearButton.Position = UDim2.new(0.55, 0, 0, 3)
+ClearButton.BackgroundColor3 = Color3.fromRGB(60, 40, 40)
+ClearButton.TextColor3 = Color3.new(1, 1, 1)
+ClearButton.Font = Enum.Font.SourceSansBold
+ClearButton.TextSize = 16
+ClearButton.Text = "✕ 清除"
+ClearButton.BackgroundTransparency = 0
+ClearButton.Parent = ButtonFrame
+
+local UICornerClear = Instance.new("UICorner")
+UICornerClear.CornerRadius = UDim.new(0, 6)
+UICornerClear.Parent = ClearButton
+
+-- 拖拽功能
+local dragging = false
+local dragStart = Vector2.new(0, 0)
+local frameStart = UDim2.new(0, 0, 0, 0)
+
+TitleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        frameStart = MainFrame.Position
+        TitleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+    end
+end)
+
+TitleBar.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+        TitleBar.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(
+            frameStart.X.Scale,
+            frameStart.X.Offset + delta.X,
+            frameStart.Y.Scale,
+            frameStart.Y.Offset + delta.Y
+        )
+    end
+end)
+
+-- 执行功能
+ExecuteButton.MouseButton1Click:Connect(function()
+    local scriptToRun = TextBox.Text
+    if scriptToRun and scriptToRun ~= "" then
+        local success, err = pcall(function()
+            local func = loadstring(scriptToRun)
+            if func then
+                func()
+                warn("✅ 脚本执行成功")
+            else
+                warn("❌ 脚本加载失败，请检查语法")
+            end
+        end)
+        if not success then
+            warn("❌ 执行错误: " .. tostring(err))
+        end
+    end
+end)
+
+-- 清除功能
+ClearButton.MouseButton1Click:Connect(function()
+    TextBox.Text = ""
+end)
+
+-- 快捷键切换显示/隐藏
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if input.KeyCode == TOGGLE_KEY and not gameProcessed then
+        ScreenGui.Enabled = not ScreenGui.Enabled
+        GuiService.GuiNavigationEnabled = false
+        GuiService.AutoSelectGuiEnabled = false
+        GuiService.SelectedObject = nil
+    end
+end)
+
+print("✅ 脚本执行器已加载")
+print("按 F5 切换显示/隐藏 UI")
