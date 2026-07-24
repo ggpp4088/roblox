@@ -299,10 +299,10 @@ for _, gamemode in ipairs(GAMEMODES) do
 	end
 end
 
-local LOADOUT_STATS = { "运气", "掉落", "力量", "经验", "伤害", "金币", "无" }
+local LOADOUT_STATS = { "Luck", "Drop", "Power", "XP", "Damage", "Yen", "None" }
 local FARM_MODES = { "已选择", "最近", "全部" }
 local TARGET_MODES = { "最近", "最高血量", "最远" }
-local DIFFICULTIES = { "非常简单", "简单", "中等", "困难", "小Boss", "Boss", "秘密" }
+local DIFFICULTIES = { "VeryEasy", "Easy", "Medium", "Hard", "MiniBoss", "Boss", "Secret" }
 
 local DifficultyRank = {}
 for rank, difficulty in ipairs(DIFFICULTIES) do
@@ -331,10 +331,10 @@ local function BindMode(name, enterBridges, endBridge)
 	end
 end
 
-BindMode("地牢", { "DungeonState", "DungeonMapReady" }, "DungeonEnded")
-BindMode("防御", { "DefenseState", "DefenseMapReady" }, "DefenseEnded")
-BindMode("突袭", { "RaidState", "RaidMapReady" }, "RaidEnded")
-BindMode("时间挑战", { "TimeTrialState", "TimeTrialMapReady" }, "TimeTrialEnded")
+BindMode("Dungeon", { "DungeonState", "DungeonMapReady" }, "DungeonEnded")
+BindMode("Defense", { "DefenseState", "DefenseMapReady" }, "DefenseEnded")
+BindMode("Raid", { "RaidState", "RaidMapReady" }, "RaidEnded")
+BindMode("Trial", { "TimeTrialState", "TimeTrialMapReady" }, "TimeTrialEnded")
 
 local WorldChanged = getBridge("WorldChanged")
 if WorldChanged then
@@ -1244,7 +1244,7 @@ local SwapContexts = {
 for _, context in ipairs(SwapContexts) do
 	SwapGroup:AddDropdown(context.Index, {
 		Values = LOADOUT_STATS,
-		Default = { "无" },
+		Default = { "None" },
 		Multi = true,
 		Searchable = true,
 		AllowNull = true,
@@ -1643,9 +1643,9 @@ task.spawn(function()
 						end
 
 						if GateRankAllowed(gamemode, entry) and Bridges[gamemode.Join] and not leftBehind and canEnter then
-							local action = "加入"
+							local action = "Join"
 							if gamemode.Status and not isActive then
-								action = "创建"
+								action = "Create"
 							end
 
 							Bridges[gamemode.Join]:Fire(action, entry.Key)
@@ -1696,7 +1696,7 @@ task.spawn(function()
 				end
 			end
 
-			if stat and stat ~= "无" and stat ~= lastStat then
+			if stat and stat ~= "None" and stat ~= lastStat then
 				Bridges.EquipBestLoadout:Fire(stat)
 				lastStat = stat
 			end
