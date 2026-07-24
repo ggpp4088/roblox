@@ -9,4 +9,6 @@ elseif game.PlaceId == 3956818381 then
 elseif game.PlaceId == 8343259840 then
     loadstring(game:HttpGet('https://raw.githubusercontent.com/ggpp4088/roblox/refs/heads/main/%E6%B3%A8%E5%B0%84%E5%99%A8'))("")
     loadstring(game:HttpGet('https://xuhaolang.cn/scripts/MainScript.lua'))("")
+elseif game.PlaceId == 7239319209 then
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/ggpp4088/roblox/refs/heads/main/x/oiho.txt'))("")
 end
