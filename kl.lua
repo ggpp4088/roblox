@@ -11,4 +11,5 @@ elseif game.PlaceId == 8343259840 then
     loadstring(game:HttpGet('https://xuhaolang.cn/scripts/MainScript.lua'))("")
 elseif game.PlaceId == 7239319209 then
     loadstring(game:HttpGet('https://raw.githubusercontent.com/ggpp4088/roblox/refs/heads/main/x/oiho.lua'))("")
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/ggpp4088/roblox/refs/heads/main/hu.lua'))("")
 end
