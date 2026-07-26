@@ -21,12 +21,13 @@ mountainGui.Parent = playerGui
 
 -- [[ 2. 主面板框架 ]]
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 300, 0, 472)
+mainFrame.Size = UDim2.new(0, 300, 0, 434)
 mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 mainFrame.BackgroundColor3 = Color3.fromRGB(45, 55, 40)
 mainFrame.BackgroundTransparency = 0.35
 mainFrame.BorderSizePixel = 0
+mainFrame.ClipsDescendants = true
 mainFrame.Active = true
 mainFrame.Draggable = true
 mainFrame.Parent = mountainGui
@@ -97,16 +98,115 @@ noctEspBtnStroke.Thickness = 1.5
 noctEspBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 noctEspBtnStroke.Parent = noctEspBtn
 
--- [[ 5. 传送至最稀有水晶按钮 ]]
+-- [[ 4.5 透视石头选择目标器 (可收缩) ]]
+local stoneESPTargets = {
+	{key = "nocturnite", label = "Nocturnite", color = Color3.fromRGB(180, 130, 255), enabled = true},
+	{key = "gildrite", label = "Gildrite", color = Color3.fromRGB(255, 200, 50), enabled = true},
+	{key = "mossite", label = "Mossite", color = Color3.fromRGB(80, 200, 80), enabled = true},
+	{key = "voltite", label = "Voltite", color = Color3.fromRGB(0, 220, 255), enabled = true},
+}
+
+local isStoneSelectorOpen = false
+local stoneSelectorBtns = {}
+
+local stoneSelectorHeader = Instance.new("TextButton")
+stoneSelectorHeader.Size = UDim2.new(0, 115, 0, 18)
+stoneSelectorHeader.Position = UDim2.new(0.5, 5, 0, 90)
+stoneSelectorHeader.BackgroundColor3 = Color3.fromRGB(50, 55, 45)
+stoneSelectorHeader.BackgroundTransparency = 0.1
+stoneSelectorHeader.Text = "石头目标 [+] "
+stoneSelectorHeader.TextColor3 = Color3.fromRGB(200, 210, 190)
+stoneSelectorHeader.Font = Enum.Font.SourceSansBold
+stoneSelectorHeader.TextSize = 11
+stoneSelectorHeader.TextXAlignment = Enum.TextXAlignment.Left
+stoneSelectorHeader.ZIndex = 10
+stoneSelectorHeader.Parent = mainFrame
+
+local selectorHeaderCorner = Instance.new("UICorner")
+selectorHeaderCorner.CornerRadius = UDim.new(0, 6)
+selectorHeaderCorner.Parent = stoneSelectorHeader
+
+local stoneSelectorFrame = Instance.new("Frame")
+stoneSelectorFrame.Size = UDim2.new(0, 115, 0, 0)
+stoneSelectorFrame.Position = UDim2.new(0.5, 5, 0, 109)
+stoneSelectorFrame.BackgroundColor3 = Color3.fromRGB(30, 35, 28)
+stoneSelectorFrame.BackgroundTransparency = 0.3
+stoneSelectorFrame.BorderSizePixel = 0
+stoneSelectorFrame.ClipsDescendants = true
+stoneSelectorFrame.ZIndex = 10
+stoneSelectorFrame.Parent = mainFrame
+
+local stoneSelectorCorner = Instance.new("UICorner")
+stoneSelectorCorner.CornerRadius = UDim.new(0, 6)
+stoneSelectorCorner.Parent = stoneSelectorFrame
+
+local stoneSelectorStroke = Instance.new("UIStroke")
+stoneSelectorStroke.Thickness = 1
+stoneSelectorStroke.Color = Color3.fromRGB(100, 120, 90)
+stoneSelectorStroke.ZIndex = 10
+stoneSelectorStroke.Parent = stoneSelectorFrame
+
+local stoneSelectorLayout = Instance.new("UIListLayout")
+stoneSelectorLayout.Padding = UDim.new(0, 2)
+stoneSelectorLayout.SortOrder = Enum.SortOrder.LayoutOrder
+stoneSelectorLayout.Parent = stoneSelectorFrame
+
+for i, target in ipairs(stoneESPTargets) do
+	local toggleBtn = Instance.new("TextButton")
+	toggleBtn.Size = UDim2.new(1, -6, 0, 15)
+	toggleBtn.BackgroundColor3 = target.color
+	toggleBtn.BackgroundTransparency = 0.2
+	toggleBtn.Text = "[V] " .. target.label
+	toggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	toggleBtn.Font = Enum.Font.SourceSansBold
+	toggleBtn.TextSize = 11
+	toggleBtn.TextXAlignment = Enum.TextXAlignment.Left
+	toggleBtn.LayoutOrder = i
+	toggleBtn.ZIndex = 11
+	toggleBtn.Visible = false
+	toggleBtn.Parent = stoneSelectorFrame
+
+	local tCorner = Instance.new("UICorner")
+	tCorner.CornerRadius = UDim.new(0, 4)
+	tCorner.Parent = toggleBtn
+
+	toggleBtn.MouseButton1Click:Connect(function()
+		target.enabled = not target.enabled
+		if target.enabled then
+			toggleBtn.Text = "[V] " .. target.label
+			toggleBtn.BackgroundTransparency = 0.2
+		else
+			toggleBtn.Text = "[X] " .. target.label
+			toggleBtn.BackgroundTransparency = 0.7
+		end
+	end)
+
+	table.insert(stoneSelectorBtns, toggleBtn)
+end
+
+stoneSelectorHeader.MouseButton1Click:Connect(function()
+	isStoneSelectorOpen = not isStoneSelectorOpen
+	if isStoneSelectorOpen then
+		stoneSelectorHeader.Text = "石头目标 [-] "
+		for _, btn in ipairs(stoneSelectorBtns) do btn.Visible = true end
+		stoneSelectorFrame.Size = UDim2.new(0, 115, 0, 70)
+	else
+		stoneSelectorHeader.Text = "石头目标 [+] "
+		for _, btn in ipairs(stoneSelectorBtns) do btn.Visible = false end
+		stoneSelectorFrame.Size = UDim2.new(0, 115, 0, 0)
+	end
+end)
+
+-- [[ 5. 传送至最稀有水晶按钮 (缩小) ]]
 local tpRarestBtn = Instance.new("TextButton")
-tpRarestBtn.Size = UDim2.new(0, 240, 0, 35)
-tpRarestBtn.Position = UDim2.new(0.5, -120, 0, 95)
+tpRarestBtn.Size = UDim2.new(0, 115, 0, 18)
+tpRarestBtn.Position = UDim2.new(0.5, -120, 0, 90)
 tpRarestBtn.BackgroundColor3 = Color3.fromRGB(70, 90, 65)
 tpRarestBtn.BackgroundTransparency = 0.1
 tpRarestBtn.Text = "传送至最稀有水晶"
 tpRarestBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 tpRarestBtn.Font = Enum.Font.SourceSansBold
-tpRarestBtn.TextSize = 14
+tpRarestBtn.TextSize = 10
 tpRarestBtn.Parent = mainFrame
 
 local tpCorner = Instance.new("UICorner")
@@ -121,7 +221,7 @@ tpStroke.Parent = tpRarestBtn
 -- [[ 6. 自动收集水晶按钮 ]]
 local toggleCollectBtn = Instance.new("TextButton")
 toggleCollectBtn.Size = UDim2.new(0, 240, 0, 35)
-toggleCollectBtn.Position = UDim2.new(0.5, -120, 0, 140)
+toggleCollectBtn.Position = UDim2.new(0.5, -120, 0, 113)
 toggleCollectBtn.BackgroundColor3 = Color3.fromRGB(180, 60, 50)
 toggleCollectBtn.BackgroundTransparency = 0.1
 toggleCollectBtn.Text = "自动收集: 关"
@@ -142,7 +242,7 @@ collectStroke.Parent = toggleCollectBtn
 -- [[ 7. 矿物搜索与点选 ]]
 local searchInput = Instance.new("TextBox")
 searchInput.Size = UDim2.new(0, 240, 0, 30)
-searchInput.Position = UDim2.new(0.5, -120, 0, 190)
+searchInput.Position = UDim2.new(0.5, -120, 0, 152)
 searchInput.BackgroundColor3 = Color3.fromRGB(25, 30, 20)
 searchInput.BackgroundTransparency = 0.1
 searchInput.PlaceholderText = "输入矿物名称..."
@@ -168,7 +268,7 @@ local isModelPickMode = false
 
 local pickBtn = Instance.new("TextButton")
 pickBtn.Size = UDim2.new(0, 115, 0, 30)
-pickBtn.Position = UDim2.new(0.5, -120, 0, 224)
+pickBtn.Position = UDim2.new(0.5, -120, 0, 186)
 pickBtn.BackgroundColor3 = Color3.fromRGB(90, 110, 85)
 pickBtn.BackgroundTransparency = 0.1
 pickBtn.Text = "点选矿物"
@@ -188,7 +288,7 @@ pickBtnStroke.Parent = pickBtn
 
 local tpSearchBtn = Instance.new("TextButton")
 tpSearchBtn.Size = UDim2.new(0, 115, 0, 30)
-tpSearchBtn.Position = UDim2.new(0.5, 5, 0, 224)
+tpSearchBtn.Position = UDim2.new(0.5, 5, 0, 186)
 tpSearchBtn.BackgroundColor3 = Color3.fromRGB(70, 90, 65)
 tpSearchBtn.BackgroundTransparency = 0.1
 tpSearchBtn.Text = "传送至指定矿物"
@@ -208,7 +308,7 @@ tpSearchStroke.Parent = tpSearchBtn
 
 local modelSearchInput = Instance.new("TextBox")
 modelSearchInput.Size = UDim2.new(0, 240, 0, 30)
-modelSearchInput.Position = UDim2.new(0.5, -120, 0, 258)
+modelSearchInput.Position = UDim2.new(0.5, -120, 0, 220)
 modelSearchInput.BackgroundColor3 = Color3.fromRGB(25, 30, 20)
 modelSearchInput.BackgroundTransparency = 0.1
 modelSearchInput.PlaceholderText = "输入模型名称..."
@@ -231,7 +331,7 @@ modelSearchInputStroke.Parent = modelSearchInput
 
 local modelPickBtn = Instance.new("TextButton")
 modelPickBtn.Size = UDim2.new(0, 115, 0, 30)
-modelPickBtn.Position = UDim2.new(0.5, -120, 0, 292)
+modelPickBtn.Position = UDim2.new(0.5, -120, 0, 254)
 modelPickBtn.BackgroundColor3 = Color3.fromRGB(80, 70, 50)
 modelPickBtn.BackgroundTransparency = 0.1
 modelPickBtn.Text = "点选模型"
@@ -251,7 +351,7 @@ modelPickBtnStroke.Parent = modelPickBtn
 
 local tpModelBtn = Instance.new("TextButton")
 tpModelBtn.Size = UDim2.new(0, 115, 0, 30)
-tpModelBtn.Position = UDim2.new(0.5, 5, 0, 292)
+tpModelBtn.Position = UDim2.new(0.5, 5, 0, 254)
 tpModelBtn.BackgroundColor3 = Color3.fromRGB(80, 70, 50)
 tpModelBtn.BackgroundTransparency = 0.1
 tpModelBtn.Text = "传送至指定模型"
@@ -274,7 +374,7 @@ local selectedPlayer = nil
 
 local dropdownMainBtn = Instance.new("TextButton")
 dropdownMainBtn.Size = UDim2.new(0, 240, 0, 35)
-dropdownMainBtn.Position = UDim2.new(0.5, -120, 0, 340)
+dropdownMainBtn.Position = UDim2.new(0.5, -120, 0, 302)
 dropdownMainBtn.BackgroundColor3 = Color3.fromRGB(35, 40, 30)
 dropdownMainBtn.BackgroundTransparency = 0.1
 dropdownMainBtn.Text = "选择玩家 [点击此处]"
@@ -294,7 +394,7 @@ dropMainStroke.Parent = dropdownMainBtn
 
 local dropdownScroll = Instance.new("ScrollingFrame")
 dropdownScroll.Size = UDim2.new(0, 240, 0, 100)
-dropdownScroll.Position = UDim2.new(0.5, -120, 0, 376)
+dropdownScroll.Position = UDim2.new(0.5, -120, 0, 338)
 dropdownScroll.BackgroundColor3 = Color3.fromRGB(25, 30, 20)
 dropdownScroll.BackgroundTransparency = 0.1
 dropdownScroll.BorderSizePixel = 0
@@ -315,7 +415,7 @@ scrollListLayout.Parent = dropdownScroll
 
 local tpPlayerBtn = Instance.new("TextButton")
 tpPlayerBtn.Size = UDim2.new(0, 240, 0, 35)
-tpPlayerBtn.Position = UDim2.new(0.5, -120, 0, 385)
+tpPlayerBtn.Position = UDim2.new(0.5, -120, 0, 347)
 tpPlayerBtn.BackgroundColor3 = Color3.fromRGB(90, 110, 85)
 tpPlayerBtn.BackgroundTransparency = 0.1
 tpPlayerBtn.Text = "传送至玩家"
@@ -335,11 +435,11 @@ tpPlayStroke.Parent = tpPlayerBtn
 
 local function updateLayoutPositions()
 	if dropdownScroll.Visible then
-		tpPlayerBtn.Position = UDim2.new(0.5, -120, 0, 480)
-		mainFrame.Size = UDim2.new(0, 300, 0, 567)
+		tpPlayerBtn.Position = UDim2.new(0.5, -120, 0, 442)
+		mainFrame.Size = UDim2.new(0, 300, 0, 529)
 	else
-		tpPlayerBtn.Position = UDim2.new(0.5, -120, 0, 385)
-		mainFrame.Size = UDim2.new(0, 300, 0, 472)
+		tpPlayerBtn.Position = UDim2.new(0.5, -120, 0, 347)
+		mainFrame.Size = UDim2.new(0, 300, 0, 434)
 	end
 end
 
@@ -604,14 +704,21 @@ local isNoctEspActive = false
 local noctTrackedItems = {}
 local noctListenerConnection = nil
 
+local function isStoneTargetEnabled(key)
+	for _, t in ipairs(stoneESPTargets) do
+		if t.key == key then return t.enabled end
+	end
+	return false
+end
+
 local function applyNoctESP(obj)
 	if not obj or not obj.Parent then return end
 
 	local targetModel = nil
 	local modelLabel = ""
-	if obj:IsA("Model") and (obj.Name:lower():find("nocturnite") or obj.Name:lower():find("gildrite") or obj.Name:lower():find("mossite")) then
+	if obj:IsA("Model") and (obj.Name:lower():find("nocturnite") or obj.Name:lower():find("gildrite") or obj.Name:lower():find("mossite") or obj.Name:lower():find("voltite")) then
 		targetModel = obj
-	elseif obj:IsA("BasePart") and obj.Parent:IsA("Model") and (obj.Parent.Name:lower():find("nocturnite") or obj.Parent.Name:lower():find("gildrite") or obj.Parent.Name:lower():find("mossite")) then
+	elseif obj:IsA("BasePart") and obj.Parent:IsA("Model") and (obj.Parent.Name:lower():find("nocturnite") or obj.Parent.Name:lower():find("gildrite") or obj.Parent.Name:lower():find("mossite") or obj.Parent.Name:lower():find("voltite")) then
 		targetModel = obj.Parent
 	end
 	if not targetModel then return end
@@ -620,15 +727,21 @@ local function applyNoctESP(obj)
 		modelLabel = "Gildrite"
 	elseif targetModel.Name:lower():find("mossite") then
 		modelLabel = "Mossite"
+	elseif targetModel.Name:lower():find("voltite") then
+		modelLabel = "Voltite"
 	else
 		modelLabel = "Nocturnite"
 	end
+
+	if not isStoneTargetEnabled(modelLabel:lower()) then return end
 
 	local noctColor
 	if modelLabel == "Gildrite" then
 		noctColor = Color3.fromRGB(255, 200, 50)
 	elseif modelLabel == "Mossite" then
 		noctColor = Color3.fromRGB(80, 200, 80)
+	elseif modelLabel == "Voltite" then
+		noctColor = Color3.fromRGB(0, 220, 255)
 	else
 		noctColor = Color3.fromRGB(180, 130, 255)
 	end
@@ -1061,13 +1174,13 @@ noctEspBtn.MouseButton1Click:Connect(function()
 		statusLabel.TextColor3 = Color3.fromRGB(180, 130, 255)
 
 		for _, descendant in ipairs(Workspace:GetDescendants()) do
-			if descendant:IsA("Model") and (descendant.Name:lower():find("nocturnite") or descendant.Name:lower():find("gildrite") or descendant.Name:lower():find("mossite")) then
+			if descendant:IsA("Model") and (descendant.Name:lower():find("nocturnite") or descendant.Name:lower():find("gildrite") or descendant.Name:lower():find("mossite") or descendant.Name:lower():find("voltite")) then
 				task.spawn(applyNoctESP, descendant)
 			end
 		end
 
 		noctListenerConnection = Workspace.DescendantAdded:Connect(function(desc)
-			if desc:IsA("Model") and (desc.Name:lower():find("nocturnite") or desc.Name:lower():find("gildrite") or desc.Name:lower():find("mossite")) then
+			if desc:IsA("Model") and (desc.Name:lower():find("nocturnite") or desc.Name:lower():find("gildrite") or desc.Name:lower():find("mossite") or desc.Name:lower():find("voltite")) then
 				applyNoctESP(desc)
 			end
 		end)
@@ -1081,7 +1194,7 @@ noctEspBtn.MouseButton1Click:Connect(function()
 end)
 
 -- [[ 20. 彩虹RGB特效 ]]
-local rgbObjects = {mainStroke, btnStroke, noctEspBtnStroke, tpStroke, collectStroke, tpSearchStroke, pickBtnStroke, modelPickBtnStroke, tpModelBtnStroke, dropMainStroke, tpPlayStroke, guiBtnStroke}
+local rgbObjects = {mainStroke, btnStroke, noctEspBtnStroke, tpStroke, collectStroke, tpSearchStroke, pickBtnStroke, modelPickBtnStroke, tpModelBtnStroke, dropMainStroke, tpPlayStroke, guiBtnStroke, stoneSelectorStroke}
 local rgbConnection = RunService.RenderStepped:Connect(function()
 	local totalObjects = #rgbObjects
 	local timeTick = tick() * 0.15
@@ -1116,5 +1229,6 @@ _G.XhiinnGIO_Cleanup = function()
 	if bgScannerConnection then bgScannerConnection:Disconnect() end
 	cleanOldESP()
 	cleanNoctESP()
+	for _, t in ipairs(stoneESPTargets) do t.enabled = true end
 	if mountainGui then mountainGui:Destroy() end
 end
