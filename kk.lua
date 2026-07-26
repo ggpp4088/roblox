@@ -609,20 +609,29 @@ local function applyNoctESP(obj)
 
 	local targetModel = nil
 	local modelLabel = ""
-	if obj:IsA("Model") and (obj.Name:lower():find("nocturnite") or obj.Name:lower():find("gildrite")) then
+	if obj:IsA("Model") and (obj.Name:lower():find("nocturnite") or obj.Name:lower():find("gildrite") or obj.Name:lower():find("mossite")) then
 		targetModel = obj
-	elseif obj:IsA("BasePart") and obj.Parent:IsA("Model") and (obj.Parent.Name:lower():find("nocturnite") or obj.Parent.Name:lower():find("gildrite")) then
+	elseif obj:IsA("BasePart") and obj.Parent:IsA("Model") and (obj.Parent.Name:lower():find("nocturnite") or obj.Parent.Name:lower():find("gildrite") or obj.Parent.Name:lower():find("mossite")) then
 		targetModel = obj.Parent
 	end
 	if not targetModel then return end
 
 	if targetModel.Name:lower():find("gildrite") then
 		modelLabel = "Gildrite"
+	elseif targetModel.Name:lower():find("mossite") then
+		modelLabel = "Mossite"
 	else
 		modelLabel = "Nocturnite"
 	end
 
-	local noctColor = modelLabel == "Gildrite" and Color3.fromRGB(255, 200, 50) or Color3.fromRGB(180, 130, 255)
+	local noctColor
+	if modelLabel == "Gildrite" then
+		noctColor = Color3.fromRGB(255, 200, 50)
+	elseif modelLabel == "Mossite" then
+		noctColor = Color3.fromRGB(80, 200, 80)
+	else
+		noctColor = Color3.fromRGB(180, 130, 255)
+	end
 
 	local function handleNoctVisual()
 		while isNoctEspActive and targetModel and targetModel.Parent do
@@ -1052,13 +1061,13 @@ noctEspBtn.MouseButton1Click:Connect(function()
 		statusLabel.TextColor3 = Color3.fromRGB(180, 130, 255)
 
 		for _, descendant in ipairs(Workspace:GetDescendants()) do
-			if descendant:IsA("Model") and (descendant.Name:lower():find("nocturnite") or descendant.Name:lower():find("gildrite")) then
+			if descendant:IsA("Model") and (descendant.Name:lower():find("nocturnite") or descendant.Name:lower():find("gildrite") or descendant.Name:lower():find("mossite")) then
 				task.spawn(applyNoctESP, descendant)
 			end
 		end
 
 		noctListenerConnection = Workspace.DescendantAdded:Connect(function(desc)
-			if desc:IsA("Model") and (desc.Name:lower():find("nocturnite") or desc.Name:lower():find("gildrite")) then
+			if desc:IsA("Model") and (desc.Name:lower():find("nocturnite") or desc.Name:lower():find("gildrite") or desc.Name:lower():find("mossite")) then
 				applyNoctESP(desc)
 			end
 		end)
