@@ -1,5 +1,5 @@
 if game.PlaceId == 13822889 then
-    loadstring(game:HttpGet('https://raw.githubusercontent.com/DevKron/Kron_Hub/refs/heads/main/lt2new'))("")
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/DevKron/Kron_Hub/refs/heads/main/version_1.0'))("")
     loadstring(game:HttpGet('https://raw.githubusercontent.com/ggpp4088/roblox/refs/heads/main/huz.lua'))("")
 elseif game.PlaceId == 1537690962 then
     loadstring(game:HttpGet('https://raw.githubusercontent.com/DevKron/Kron_Hub/refs/heads/main/bss'))("")
