@@ -681,7 +681,7 @@ local function applyNoctESP(obj)
 				end
 			end
 
-			task.wait(3)
+			task.wait(5)
 		end
 		for _, item in ipairs(noctTrackedItems) do
 			if item and item.Parent then item:Destroy() end
@@ -1052,11 +1052,15 @@ noctEspBtn.MouseButton1Click:Connect(function()
 		statusLabel.TextColor3 = Color3.fromRGB(180, 130, 255)
 
 		for _, descendant in ipairs(Workspace:GetDescendants()) do
-			task.spawn(applyNoctESP, descendant)
+			if descendant:IsA("Model") and (descendant.Name:lower():find("nocturnite") or descendant.Name:lower():find("gildrite")) then
+				task.spawn(applyNoctESP, descendant)
+			end
 		end
 
 		noctListenerConnection = Workspace.DescendantAdded:Connect(function(desc)
-			applyNoctESP(desc)
+			if desc:IsA("Model") and (desc.Name:lower():find("nocturnite") or desc.Name:lower():find("gildrite")) then
+				applyNoctESP(desc)
+			end
 		end)
 	else
 		noctEspBtn.Text = "透视石头"
