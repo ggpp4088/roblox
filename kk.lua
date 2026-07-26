@@ -6,8 +6,12 @@ local TweenService = game:GetService("TweenService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
+local UserInputService = game:GetService("UserInputService")
 
 if _G.XhiinnGIO_Cleanup then _G.XhiinnGIO_Cleanup() end
+
+local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+local uiScale = isMobile and 0.7 or 1
 
 -- [[ 1. 创建屏幕界面 ]]
 local mountainGui = Instance.new("ScreenGui")
@@ -18,13 +22,20 @@ mountainGui.Parent = playerGui
 -- [[ 2. 主面板框架 ]]
 local mainFrame = Instance.new("Frame")
 mainFrame.Size = UDim2.new(0, 300, 0, 472)
-mainFrame.Position = UDim2.new(0.5, -150, 0.5, -236)
+mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 mainFrame.BackgroundColor3 = Color3.fromRGB(45, 55, 40)
 mainFrame.BackgroundTransparency = 0.35
 mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
 mainFrame.Draggable = true
 mainFrame.Parent = mountainGui
+
+if isMobile then
+	local mfScale = Instance.new("UIScale")
+	mfScale.Scale = uiScale
+	mfScale.Parent = mainFrame
+end
 
 local frameCorner = Instance.new("UICorner")
 frameCorner.CornerRadius = UDim.new(0, 12)
@@ -386,14 +397,14 @@ statusLabel.Parent = mainFrame
 
 -- [[ 9. 隐藏/显示界面按钮 ]]
 local toggleGuiBtn = Instance.new("TextButton")
-toggleGuiBtn.Size = UDim2.new(0, 120, 0, 35)
-toggleGuiBtn.Position = UDim2.new(1, -135, 0, 15)
+toggleGuiBtn.Size = UDim2.new(0, isMobile and 90 or 120, 0, isMobile and 28 or 35)
+toggleGuiBtn.Position = UDim2.new(1, isMobile and -100 or -135, 0, isMobile and 10 or 15)
 toggleGuiBtn.BackgroundColor3 = Color3.fromRGB(35, 43, 32)
 toggleGuiBtn.BackgroundTransparency = 0.2
 toggleGuiBtn.Text = "隐藏界面"
 toggleGuiBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 toggleGuiBtn.Font = Enum.Font.SourceSansBold
-toggleGuiBtn.TextSize = 13
+toggleGuiBtn.TextSize = isMobile and 11 or 13
 toggleGuiBtn.Parent = mountainGui
 
 local guiBtnCorner = Instance.new("UICorner")
