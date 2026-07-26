@@ -4,7 +4,7 @@ local player = Players.LocalPlayer
 local whitelist = {
     "ggpp_xx",
     "cwm204518",
-    "hbfhjj125",
+    "nbfhjj125",
 }
 
 local function isWhitelisted(name)
