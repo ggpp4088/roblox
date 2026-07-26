@@ -82,7 +82,7 @@ noctEspBtn.Size = UDim2.new(0, 115, 0, 35)
 noctEspBtn.Position = UDim2.new(0.5, 5, 0, 50)
 noctEspBtn.BackgroundColor3 = Color3.fromRGB(120, 60, 140)
 noctEspBtn.BackgroundTransparency = 0.1
-noctEspBtn.Text = "透视Nocturnite"
+noctEspBtn.Text = "透视石头"
 noctEspBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 noctEspBtn.Font = Enum.Font.SourceSansBold
 noctEspBtn.TextSize = 12
@@ -601,57 +601,104 @@ local function cleanOldESP()
 end
 
 local isNoctEspActive = false
-local noctTrackedBillboards = {}
+local noctTrackedItems = {}
 local noctListenerConnection = nil
 
 local function applyNoctESP(obj)
 	if not obj or not obj.Parent then return end
-	if not (obj:IsA("Model") and obj.Name:lower():find("nocturnite")) then return end
+
+	local targetModel = nil
+	local modelLabel = ""
+	if obj:IsA("Model") and (obj.Name:lower():find("nocturnite") or obj.Name:lower():find("gildrite")) then
+		targetModel = obj
+	elseif obj:IsA("BasePart") and obj.Parent:IsA("Model") and (obj.Parent.Name:lower():find("nocturnite") or obj.Parent.Name:lower():find("gildrite")) then
+		targetModel = obj.Parent
+	end
+	if not targetModel then return end
+
+	if targetModel.Name:lower():find("gildrite") then
+		modelLabel = "Gildrite"
+	else
+		modelLabel = "Nocturnite"
+	end
+
+	local noctColor = modelLabel == "Gildrite" and Color3.fromRGB(255, 200, 50) or Color3.fromRGB(180, 130, 255)
 
 	local function handleNoctVisual()
-		while isNoctEspActive and obj and obj.Parent do
-			for _, part in ipairs(obj:GetDescendants()) do
-				if part:IsA("BasePart") then
-					local espName = "NocturniteESP"
-					if not part:FindFirstChild(espName) then
-						local bb = Instance.new("BillboardGui")
-						bb.Name = espName
-						bb.Size = UDim2.new(0, 160, 0, 40)
-						bb.AlwaysOnTop = true
-						bb.ExtentsOffset = Vector3.new(0, 2, 0)
-						bb.Adornee = part
+		while isNoctEspActive and targetModel and targetModel.Parent do
+			local hl = targetModel:FindFirstChild("NocturniteHighlight")
+			if not hl then
+				pcall(function()
+					hl = Instance.new("Highlight")
+					hl.Name = "NocturniteHighlight"
+					hl.Enabled = true
+					hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+					hl.FillColor = noctColor
+					hl.FillTransparency = 0.3
+					hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+					hl.OutlineTransparency = 0
+					hl.Parent = Workspace
+					hl.Adornee = targetModel
+					table.insert(noctTrackedItems, hl)
+				end)
+			end
 
-						local label = Instance.new("TextLabel")
-						label.Size = UDim2.new(1, 0, 1, 0)
-						label.BackgroundTransparency = 1
-						label.TextStrokeTransparency = 0
-						label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-						label.Font = Enum.Font.SourceSansBold
-						label.TextSize = 13
-						label.TextColor3 = Color3.fromRGB(180, 130, 255)
-						label.Text = "Nocturnite"
-						label.Parent = bb
-						bb.Parent = part
-						table.insert(noctTrackedBillboards, bb)
+			local icon = targetModel:FindFirstChild("NocturniteIcon")
+			if not icon then
+				pcall(function()
+					icon = Instance.new("BillboardGui")
+					icon.Name = "NocturniteIcon"
+					icon.AlwaysOnTop = true
+					icon.Adornee = targetModel
+					icon.ExtentsOffset = Vector3.new(0, 0, 0)
+					icon.Size = UDim2.new(0, 200, 0, 40)
+					icon.Parent = targetModel
+
+					local label = Instance.new("TextLabel")
+					label.Name = "ESP Text"
+					label.Parent = icon
+					label.BackgroundTransparency = 1
+					label.Size = UDim2.new(0, 200, 0, 40)
+					label.Font = Enum.Font.SciFi
+					label.Text = modelLabel
+					label.TextColor3 = noctColor
+					label.TextSize = 13
+					label.TextWrapped = true
+					table.insert(noctTrackedItems, icon)
+				end)
+			end
+
+			if icon then
+				local espText = icon:FindFirstChild("ESP Text")
+				if espText then
+					local char = player.Character
+					local myHrp = char and char:FindFirstChild("HumanoidRootPart")
+					local distance = 0
+					if myHrp then
+						distance = math.floor((myHrp.Position - targetModel:GetPivot().Position).Magnitude)
 					end
+					espText.Text = modelLabel .. " | Distance: " .. distance
 				end
 			end
-			task.wait(0.5)
+
+			task.wait(3)
 		end
-		for _, part in ipairs(obj:GetDescendants()) do
-			if part:IsA("BasePart") then
-				local bb = part:FindFirstChild("NocturniteESP")
-				if bb then bb:Destroy() end
-			end
+		for _, item in ipairs(noctTrackedItems) do
+			if item and item.Parent then item:Destroy() end
 		end
+		noctTrackedItems = {}
 	end
 	task.spawn(handleNoctVisual)
 end
 
 local function cleanNoctESP()
 	if noctListenerConnection then noctListenerConnection:Disconnect() noctListenerConnection = nil end
-	for _, esp in pairs(noctTrackedBillboards) do if esp then esp:Destroy() end end
-	noctTrackedBillboards = {}
+	for _, item in pairs(noctTrackedItems) do if item and item.Parent then item:Destroy() end end
+	noctTrackedItems = {}
+	for _, obj in ipairs(Workspace:GetDescendants()) do
+		if obj:IsA("Highlight") and obj.Name == "NocturniteHighlight" then obj:Destroy() end
+		if obj:IsA("BillboardGui") and obj.Name == "NocturniteIcon" then obj:Destroy() end
+	end
 end
 
 -- [[ 14. 后台搜索逻辑 ]]
@@ -999,9 +1046,9 @@ end)
 noctEspBtn.MouseButton1Click:Connect(function()
 	isNoctEspActive = not isNoctEspActive
 	if isNoctEspActive then
-		noctEspBtn.Text = "Nocturnite: 开"
+		noctEspBtn.Text = "透视石头: 开"
 		noctEspBtn.BackgroundColor3 = Color3.fromRGB(80, 50, 120)
-		statusLabel.Text = "状态: Nocturnite透视已激活"
+		statusLabel.Text = "状态: 透视石头已激活"
 		statusLabel.TextColor3 = Color3.fromRGB(180, 130, 255)
 
 		for _, descendant in ipairs(Workspace:GetDescendants()) do
@@ -1012,9 +1059,9 @@ noctEspBtn.MouseButton1Click:Connect(function()
 			applyNoctESP(desc)
 		end)
 	else
-		noctEspBtn.Text = "透视Nocturnite"
+		noctEspBtn.Text = "透视石头"
 		noctEspBtn.BackgroundColor3 = Color3.fromRGB(120, 60, 140)
-		statusLabel.Text = "状态: Nocturnite透视已关闭"
+		statusLabel.Text = "状态: 透视石头已关闭"
 		statusLabel.TextColor3 = Color3.fromRGB(240, 100, 90)
 		cleanNoctESP()
 	end
