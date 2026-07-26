@@ -7,21 +7,23 @@ local TweenService = game:GetService("TweenService")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
--- [[ 1. CREATION SCREEN GUI ]]
+if _G.XhiinnGIO_Cleanup then _G.XhiinnGIO_Cleanup() end
+
+-- [[ 1. 创建屏幕界面 ]]
 local mountainGui = Instance.new("ScreenGui")
 mountainGui.Name = "XhiinnGIOMountainOreSystemV73"
 mountainGui.ResetOnSpawn = false
 mountainGui.Parent = playerGui
 
--- [[ 2. FRAME UTAMA PANEL (ARMY THEME ORIGINAL) ]]
+-- [[ 2. 主面板框架 ]]
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 300, 0, 360)
-mainFrame.Position = UDim2.new(0.5, -150, 0.5, -180)
+mainFrame.Size = UDim2.new(0, 300, 0, 472)
+mainFrame.Position = UDim2.new(0.5, -150, 0.5, -236)
 mainFrame.BackgroundColor3 = Color3.fromRGB(45, 55, 40)
-mainFrame.BackgroundTransparency = 0.35 
+mainFrame.BackgroundTransparency = 0.35
 mainFrame.BorderSizePixel = 0
 mainFrame.Active = true
-mainFrame.Draggable = true 
+mainFrame.Draggable = true
 mainFrame.Parent = mountainGui
 
 local frameCorner = Instance.new("UICorner")
@@ -33,23 +35,23 @@ mainStroke.Thickness = 2.5
 mainStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 mainStroke.Parent = mainFrame
 
--- [[ 3. JUDUL PANEL ]]
+-- [[ 3. 面板标题 ]]
 local titleLabel = Instance.new("TextLabel")
 titleLabel.Size = UDim2.new(1, 0, 0, 45)
 titleLabel.BackgroundTransparency = 1
-titleLabel.Text = "MINE A MOUNTAIN ESP v7.3"
+titleLabel.Text = "挖矿山透视 v7.3"
 titleLabel.TextColor3 = Color3.fromRGB(245, 245, 235)
 titleLabel.Font = Enum.Font.SourceSansBold
 titleLabel.TextSize = 17
 titleLabel.Parent = mainFrame
 
--- [[ 4. TOMBOL UTAMA TOGGLE ESP ]]
+-- [[ 4. 开关透视按钮 ]]
 local toggleEspBtn = Instance.new("TextButton")
-toggleEspBtn.Size = UDim2.new(0, 240, 0, 35)
+toggleEspBtn.Size = UDim2.new(0, 115, 0, 35)
 toggleEspBtn.Position = UDim2.new(0.5, -120, 0, 50)
 toggleEspBtn.BackgroundColor3 = Color3.fromRGB(180, 60, 50)
 toggleEspBtn.BackgroundTransparency = 0.1
-toggleEspBtn.Text = "AUTO ESP: OFF"
+toggleEspBtn.Text = "自动透视"
 toggleEspBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 toggleEspBtn.Font = Enum.Font.SourceSansBold
 toggleEspBtn.TextSize = 15
@@ -64,13 +66,33 @@ btnStroke.Thickness = 1.5
 btnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 btnStroke.Parent = toggleEspBtn
 
--- [[ 5. TOMBOL TELEPORT KE KRISTAL MAHAL ]]
+local noctEspBtn = Instance.new("TextButton")
+noctEspBtn.Size = UDim2.new(0, 115, 0, 35)
+noctEspBtn.Position = UDim2.new(0.5, 5, 0, 50)
+noctEspBtn.BackgroundColor3 = Color3.fromRGB(120, 60, 140)
+noctEspBtn.BackgroundTransparency = 0.1
+noctEspBtn.Text = "透视Nocturnite"
+noctEspBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+noctEspBtn.Font = Enum.Font.SourceSansBold
+noctEspBtn.TextSize = 12
+noctEspBtn.Parent = mainFrame
+
+local noctEspBtnCorner = Instance.new("UICorner")
+noctEspBtnCorner.CornerRadius = UDim.new(0, 8)
+noctEspBtnCorner.Parent = noctEspBtn
+
+local noctEspBtnStroke = Instance.new("UIStroke")
+noctEspBtnStroke.Thickness = 1.5
+noctEspBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+noctEspBtnStroke.Parent = noctEspBtn
+
+-- [[ 5. 传送至最稀有水晶按钮 ]]
 local tpRarestBtn = Instance.new("TextButton")
 tpRarestBtn.Size = UDim2.new(0, 240, 0, 35)
 tpRarestBtn.Position = UDim2.new(0.5, -120, 0, 95)
 tpRarestBtn.BackgroundColor3 = Color3.fromRGB(70, 90, 65)
 tpRarestBtn.BackgroundTransparency = 0.1
-tpRarestBtn.Text = "TP TO RAREST CRYSTAL"
+tpRarestBtn.Text = "传送至最稀有水晶"
 tpRarestBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 tpRarestBtn.Font = Enum.Font.SourceSansBold
 tpRarestBtn.TextSize = 14
@@ -85,13 +107,13 @@ tpStroke.Thickness = 1.5
 tpStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 tpStroke.Parent = tpRarestBtn
 
--- [[ 6. TOMBOL AUTO COLLECT KRISTAL ]]
+-- [[ 6. 自动收集水晶按钮 ]]
 local toggleCollectBtn = Instance.new("TextButton")
 toggleCollectBtn.Size = UDim2.new(0, 240, 0, 35)
 toggleCollectBtn.Position = UDim2.new(0.5, -120, 0, 140)
 toggleCollectBtn.BackgroundColor3 = Color3.fromRGB(180, 60, 50)
 toggleCollectBtn.BackgroundTransparency = 0.1
-toggleCollectBtn.Text = "AUTO COLLECT: OFF"
+toggleCollectBtn.Text = "自动收集: 关"
 toggleCollectBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 toggleCollectBtn.Font = Enum.Font.SourceSansBold
 toggleCollectBtn.TextSize = 14
@@ -106,15 +128,145 @@ collectStroke.Thickness = 1.5
 collectStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 collectStroke.Parent = toggleCollectBtn
 
--- [[ 7. DROPDOWN PLAYER LIST SYSTEM ]]
+-- [[ 7. 矿物搜索与点选 ]]
+local searchInput = Instance.new("TextBox")
+searchInput.Size = UDim2.new(0, 240, 0, 30)
+searchInput.Position = UDim2.new(0.5, -120, 0, 190)
+searchInput.BackgroundColor3 = Color3.fromRGB(25, 30, 20)
+searchInput.BackgroundTransparency = 0.1
+searchInput.PlaceholderText = "输入矿物名称..."
+searchInput.PlaceholderColor3 = Color3.fromRGB(140, 150, 135)
+searchInput.Text = ""
+searchInput.TextColor3 = Color3.fromRGB(240, 240, 240)
+searchInput.Font = Enum.Font.SourceSans
+searchInput.TextSize = 14
+searchInput.ClearTextOnFocus = false
+searchInput.Parent = mainFrame
+
+local searchInputCorner = Instance.new("UICorner")
+searchInputCorner.CornerRadius = UDim.new(0, 6)
+searchInputCorner.Parent = searchInput
+
+local searchInputStroke = Instance.new("UIStroke")
+searchInputStroke.Thickness = 1.2
+searchInputStroke.Color = Color3.fromRGB(120, 140, 110)
+searchInputStroke.Parent = searchInput
+
+local isPickMode = false
+local isModelPickMode = false
+
+local pickBtn = Instance.new("TextButton")
+pickBtn.Size = UDim2.new(0, 115, 0, 30)
+pickBtn.Position = UDim2.new(0.5, -120, 0, 224)
+pickBtn.BackgroundColor3 = Color3.fromRGB(90, 110, 85)
+pickBtn.BackgroundTransparency = 0.1
+pickBtn.Text = "点选矿物"
+pickBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+pickBtn.Font = Enum.Font.SourceSansBold
+pickBtn.TextSize = 13
+pickBtn.Parent = mainFrame
+
+local pickBtnCorner = Instance.new("UICorner")
+pickBtnCorner.CornerRadius = UDim.new(0, 8)
+pickBtnCorner.Parent = pickBtn
+
+local pickBtnStroke = Instance.new("UIStroke")
+pickBtnStroke.Thickness = 1.5
+pickBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+pickBtnStroke.Parent = pickBtn
+
+local tpSearchBtn = Instance.new("TextButton")
+tpSearchBtn.Size = UDim2.new(0, 115, 0, 30)
+tpSearchBtn.Position = UDim2.new(0.5, 5, 0, 224)
+tpSearchBtn.BackgroundColor3 = Color3.fromRGB(70, 90, 65)
+tpSearchBtn.BackgroundTransparency = 0.1
+tpSearchBtn.Text = "传送至指定矿物"
+tpSearchBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+tpSearchBtn.Font = Enum.Font.SourceSansBold
+tpSearchBtn.TextSize = 11
+tpSearchBtn.Parent = mainFrame
+
+local tpSearchCorner = Instance.new("UICorner")
+tpSearchCorner.CornerRadius = UDim.new(0, 8)
+tpSearchCorner.Parent = tpSearchBtn
+
+local tpSearchStroke = Instance.new("UIStroke")
+tpSearchStroke.Thickness = 1.5
+tpSearchStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+tpSearchStroke.Parent = tpSearchBtn
+
+local modelSearchInput = Instance.new("TextBox")
+modelSearchInput.Size = UDim2.new(0, 240, 0, 30)
+modelSearchInput.Position = UDim2.new(0.5, -120, 0, 258)
+modelSearchInput.BackgroundColor3 = Color3.fromRGB(25, 30, 20)
+modelSearchInput.BackgroundTransparency = 0.1
+modelSearchInput.PlaceholderText = "输入模型名称..."
+modelSearchInput.PlaceholderColor3 = Color3.fromRGB(140, 150, 135)
+modelSearchInput.Text = ""
+modelSearchInput.TextColor3 = Color3.fromRGB(240, 240, 240)
+modelSearchInput.Font = Enum.Font.SourceSans
+modelSearchInput.TextSize = 14
+modelSearchInput.ClearTextOnFocus = false
+modelSearchInput.Parent = mainFrame
+
+local modelSearchInputCorner = Instance.new("UICorner")
+modelSearchInputCorner.CornerRadius = UDim.new(0, 6)
+modelSearchInputCorner.Parent = modelSearchInput
+
+local modelSearchInputStroke = Instance.new("UIStroke")
+modelSearchInputStroke.Thickness = 1.2
+modelSearchInputStroke.Color = Color3.fromRGB(120, 140, 110)
+modelSearchInputStroke.Parent = modelSearchInput
+
+local modelPickBtn = Instance.new("TextButton")
+modelPickBtn.Size = UDim2.new(0, 115, 0, 30)
+modelPickBtn.Position = UDim2.new(0.5, -120, 0, 292)
+modelPickBtn.BackgroundColor3 = Color3.fromRGB(80, 70, 50)
+modelPickBtn.BackgroundTransparency = 0.1
+modelPickBtn.Text = "点选模型"
+modelPickBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+modelPickBtn.Font = Enum.Font.SourceSansBold
+modelPickBtn.TextSize = 13
+modelPickBtn.Parent = mainFrame
+
+local modelPickBtnCorner = Instance.new("UICorner")
+modelPickBtnCorner.CornerRadius = UDim.new(0, 8)
+modelPickBtnCorner.Parent = modelPickBtn
+
+local modelPickBtnStroke = Instance.new("UIStroke")
+modelPickBtnStroke.Thickness = 1.5
+modelPickBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+modelPickBtnStroke.Parent = modelPickBtn
+
+local tpModelBtn = Instance.new("TextButton")
+tpModelBtn.Size = UDim2.new(0, 115, 0, 30)
+tpModelBtn.Position = UDim2.new(0.5, 5, 0, 292)
+tpModelBtn.BackgroundColor3 = Color3.fromRGB(80, 70, 50)
+tpModelBtn.BackgroundTransparency = 0.1
+tpModelBtn.Text = "传送至指定模型"
+tpModelBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+tpModelBtn.Font = Enum.Font.SourceSansBold
+tpModelBtn.TextSize = 11
+tpModelBtn.Parent = mainFrame
+
+local tpModelBtnCorner = Instance.new("UICorner")
+tpModelBtnCorner.CornerRadius = UDim.new(0, 8)
+tpModelBtnCorner.Parent = tpModelBtn
+
+local tpModelBtnStroke = Instance.new("UIStroke")
+tpModelBtnStroke.Thickness = 1.5
+tpModelBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+tpModelBtnStroke.Parent = tpModelBtn
+
+-- [[ 8. 玩家列表下拉菜单系统 ]]
 local selectedPlayer = nil
 
 local dropdownMainBtn = Instance.new("TextButton")
 dropdownMainBtn.Size = UDim2.new(0, 240, 0, 35)
-dropdownMainBtn.Position = UDim2.new(0.5, -120, 0, 190)
+dropdownMainBtn.Position = UDim2.new(0.5, -120, 0, 340)
 dropdownMainBtn.BackgroundColor3 = Color3.fromRGB(35, 40, 30)
 dropdownMainBtn.BackgroundTransparency = 0.1
-dropdownMainBtn.Text = "PILIH PLAYER [KLIK DI SINI]"
+dropdownMainBtn.Text = "选择玩家 [点击此处]"
 dropdownMainBtn.TextColor3 = Color3.fromRGB(220, 230, 210)
 dropdownMainBtn.Font = Enum.Font.SourceSansBold
 dropdownMainBtn.TextSize = 14
@@ -131,7 +283,7 @@ dropMainStroke.Parent = dropdownMainBtn
 
 local dropdownScroll = Instance.new("ScrollingFrame")
 dropdownScroll.Size = UDim2.new(0, 240, 0, 100)
-dropdownScroll.Position = UDim2.new(0.5, -120, 0, 226)
+dropdownScroll.Position = UDim2.new(0.5, -120, 0, 376)
 dropdownScroll.BackgroundColor3 = Color3.fromRGB(25, 30, 20)
 dropdownScroll.BackgroundTransparency = 0.1
 dropdownScroll.BorderSizePixel = 0
@@ -152,10 +304,10 @@ scrollListLayout.Parent = dropdownScroll
 
 local tpPlayerBtn = Instance.new("TextButton")
 tpPlayerBtn.Size = UDim2.new(0, 240, 0, 35)
-tpPlayerBtn.Position = UDim2.new(0.5, -120, 0, 235)
+tpPlayerBtn.Position = UDim2.new(0.5, -120, 0, 385)
 tpPlayerBtn.BackgroundColor3 = Color3.fromRGB(90, 110, 85)
 tpPlayerBtn.BackgroundTransparency = 0.1
-tpPlayerBtn.Text = "TP TO PLAYER"
+tpPlayerBtn.Text = "传送至玩家"
 tpPlayerBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 tpPlayerBtn.Font = Enum.Font.SourceSansBold
 tpPlayerBtn.TextSize = 14
@@ -172,11 +324,11 @@ tpPlayStroke.Parent = tpPlayerBtn
 
 local function updateLayoutPositions()
 	if dropdownScroll.Visible then
-		tpPlayerBtn.Position = UDim2.new(0.5, -120, 0, 330)
-		mainFrame.Size = UDim2.new(0, 300, 0, 440)
+		tpPlayerBtn.Position = UDim2.new(0.5, -120, 0, 480)
+		mainFrame.Size = UDim2.new(0, 300, 0, 567)
 	else
-		tpPlayerBtn.Position = UDim2.new(0.5, -120, 0, 235)
-		mainFrame.Size = UDim2.new(0, 300, 0, 360)
+		tpPlayerBtn.Position = UDim2.new(0.5, -120, 0, 385)
+		mainFrame.Size = UDim2.new(0, 300, 0, 472)
 	end
 end
 
@@ -184,7 +336,7 @@ local function refreshDropdownList()
 	for _, item in ipairs(dropdownScroll:GetChildren()) do
 		if item:IsA("TextButton") then item:Destroy() end
 	end
-	
+
 	local count = 0
 	for _, p in ipairs(Players:GetPlayers()) do
 		if p ~= player then
@@ -199,14 +351,14 @@ local function refreshDropdownList()
 			pBtn.TextSize = 13
 			pBtn.ZIndex = 6
 			pBtn.Parent = dropdownScroll
-			
+
 			local pBtnCorner = Instance.new("UICorner")
 			pBtnCorner.CornerRadius = UDim.new(0, 4)
 			pBtnCorner.Parent = pBtn
-			
+
 			pBtn.MouseButton1Click:Connect(function()
 				selectedPlayer = p
-				dropdownMainBtn.Text = "TARGET: " .. p.Name
+				dropdownMainBtn.Text = "目标: " .. p.Name
 				dropdownScroll.Visible = false
 				updateLayoutPositions()
 			end)
@@ -221,24 +373,24 @@ dropdownMainBtn.MouseButton1Click:Connect(function()
 	updateLayoutPositions()
 end)
 
--- [[ 8. STATUS LABEL KECIL ]]
+-- [[ 8. 状态标签 ]]
 local statusLabel = Instance.new("TextLabel")
 statusLabel.Size = UDim2.new(1, 0, 0, 25)
 statusLabel.Position = UDim2.new(0, 0, 1, -30)
 statusLabel.BackgroundTransparency = 1
-statusLabel.Text = "Status: Menunggu Aktivasi"
+statusLabel.Text = "状态: 等待激活"
 statusLabel.TextColor3 = Color3.fromRGB(180, 190, 175)
 statusLabel.Font = Enum.Font.SourceSansItalic
 statusLabel.TextSize = 13
 statusLabel.Parent = mainFrame
 
--- [[ 9. TOMBOL HIDE / SHOW PANEL ]]
+-- [[ 9. 隐藏/显示界面按钮 ]]
 local toggleGuiBtn = Instance.new("TextButton")
 toggleGuiBtn.Size = UDim2.new(0, 120, 0, 35)
 toggleGuiBtn.Position = UDim2.new(1, -135, 0, 15)
 toggleGuiBtn.BackgroundColor3 = Color3.fromRGB(35, 43, 32)
 toggleGuiBtn.BackgroundTransparency = 0.2
-toggleGuiBtn.Text = "Sembunyikan UI"
+toggleGuiBtn.Text = "隐藏界面"
 toggleGuiBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 toggleGuiBtn.Font = Enum.Font.SourceSansBold
 toggleGuiBtn.TextSize = 13
@@ -256,18 +408,18 @@ guiBtnStroke.Parent = toggleGuiBtn
 toggleGuiBtn.MouseButton1Click:Connect(function()
 	mainFrame.Visible = not mainFrame.Visible
 	if mainFrame.Visible then
-		toggleGuiBtn.Text = "Sembunyikan UI"
+		toggleGuiBtn.Text = "隐藏界面"
 		toggleGuiBtn.BackgroundColor3 = Color3.fromRGB(35, 43, 32)
 	else
-		toggleGuiBtn.Text = "Tampilkan UI"
+		toggleGuiBtn.Text = "显示界面"
 		toggleGuiBtn.BackgroundColor3 = Color3.fromRGB(70, 90, 65)
 	end
 end)
 
--- [[ 10. COLOR CODES DYNAMIC ]]
+-- [[ 10. 稀有度颜色编码 ]]
 local tierColors = {
 	["common"] = Color3.fromRGB(220, 220, 220),
-	["uncommon"] = Color3.fromRGB(90, 200, 250), 
+	["uncommon"] = Color3.fromRGB(90, 200, 250),
 	["rare"] = Color3.fromRGB(52, 152, 219),
 	["epic"] = Color3.fromRGB(155, 89, 182),
 	["legendary"] = Color3.fromRGB(241, 196, 15),
@@ -276,7 +428,7 @@ local tierColors = {
 	["divine"] = Color3.fromRGB(230, 126, 34)
 }
 
--- [[ 11. DEEP DATA EXTRACTOR ENGINE ]]
+-- [[ 11. 深度数据提取引擎 ]]
 local lastScannedCrystals = {}
 
 local function extractCrystalData(object)
@@ -294,7 +446,7 @@ local function extractCrystalData(object)
 			if wAttr then weight = tostring(wAttr) end
 			price = tonumber(src:GetAttribute("Price")) or tonumber(src:GetAttribute("Value")) or price
 			classStr = src:GetAttribute("Class") or classStr
-			
+
 			local cfg = src:FindFirstChild("Configuration") or src:FindFirstChild("Data")
 			if cfg then
 				tier = cfg:FindFirstChild("Tier") and tostring(cfg.Tier.Value) or tier
@@ -317,19 +469,18 @@ local function extractCrystalData(object)
 	return tostring(tier), tostring(weight), price, tostring(classStr)
 end
 
--- [[ 12. STRICT MOUNTAIN-ONLY FILTER (DETEKSI ANTI BASE TOTAL) ]]
+-- [[ 12. 严格山脉过滤器（完全排除基地） ]]
 local function isInsideMountain(part)
 	if not part or not part.Parent then return false end
-	
-	-- A. Filter Struktur Hirarki Kontainer
+
+	-- A. 结构层级过滤
 	local ancestryStr = ""
 	local current = part.Parent
 	while current and current ~= Workspace do
 		ancestryStr = ancestryStr .. "_" .. current.Name:lower()
 		current = current.Parent
 	end
-	
-	-- Jika objek ada di dalam model bertuliskan tycoon, base, pangkalan, atau conveyor pangkalan, abaikan.
+
 	if ancestryStr:find("base") or ancestryStr:find("tycoon") or ancestryStr:find("player") or ancestryStr:find("plot") or ancestryStr:find("claim") or ancestryStr:find("conveyor") or ancestryStr:find("dropper") then
 		return false
 	end
@@ -337,24 +488,23 @@ local function isInsideMountain(part)
 		return false
 	end
 
-	-- B. Filter Multi-Base Radius Fleksibel terhadap objek dasar atau pemain lain di pangkalan mereka
+	-- B. 多基地半径灵活过滤
 	for _, p in ipairs(Players:GetPlayers()) do
 		if p ~= player and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
 			local distToPlayer = (part.Position - p.Character.HumanoidRootPart.Position).Magnitude
-			if distToPlayer < 45 then 
-				return false -- Batu nempel dekat tubuh orang lain di basenya
+			if distToPlayer < 45 then
+				return false
 			end
 		end
 	end
 
-	-- C. Filter Deteksi Pusat Gunung Tambang:
-	-- Secara struktural, koordinat pangkalan berada di sisi luar map. Pengecekan area aman dilakukan di sini.
+	-- C. 山脉中心检测过滤
 	for _, obj in ipairs(Workspace:GetChildren()) do
 		if obj:IsA("Model") and (obj.Name:lower():find("tycoon") or obj.Name:lower():find("base") or obj.Name:lower():find("plot")) then
 			local root = obj.PrimaryPart or obj:FindFirstChildOfClass("BasePart")
 			if root then
-				if (part.Position - root.Position).Magnitude < 85 then 
-					return false -- Terlalu dekat dengan pusat bangunan pangkalan
+				if (part.Position - root.Position).Magnitude < 85 then
+					return false
 				end
 			end
 		end
@@ -363,7 +513,7 @@ local function isInsideMountain(part)
 	return true
 end
 
--- [[ 13. LIVE LISTENER ESP ENGINE ]]
+-- [[ 13. 实时监听透视引擎 ]]
 local isEspActive = false
 local trackedBillboards = {}
 local listenerConnection = nil
@@ -376,7 +526,7 @@ local function applyESP(part)
 	local nameLower = part.Name:lower()
 
 	if nameLower:find("crystal") or nameLower:find("ore") or part:GetAttribute("Tier") or (part.Parent and part.Parent:GetAttribute("Tier")) or part:FindFirstChild("Tier") then
-		
+
 		task.wait(0.05)
 		if not part or not part.Parent then return end
 
@@ -390,7 +540,7 @@ local function applyESP(part)
 				local char = player.Character
 				local myHrp = char and char:FindFirstChild("HumanoidRootPart")
 				local distance = myHrp and (myHrp.Position - part.Position).Magnitude or 9999
-				
+
 				if distance <= maxRenderDistance then
 					local billboard = part:FindFirstChild("XhiinnGIO_OriginalESP")
 					if not billboard then
@@ -400,7 +550,7 @@ local function applyESP(part)
 						billboard.AlwaysOnTop = true
 						billboard.ExtentsOffset = Vector3.new(0, 3, 0)
 						billboard.Adornee = part
-						
+
 						local label = Instance.new("TextLabel")
 						label.Size = UDim2.new(1, 0, 1, 0)
 						label.BackgroundTransparency = 1
@@ -408,13 +558,13 @@ local function applyESP(part)
 						label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
 						label.Font = Enum.Font.SourceSansBold
 						label.TextSize = 14
-						
+
 						local textColor = Color3.fromRGB(255, 255, 255)
 						local lowerTier = rawTier:lower()
 						for k, col in pairs(tierColors) do if lowerTier:find(k) then textColor = col break end end
 						label.TextColor3 = textColor
-						
-						label.Text = string.format("TIER: %s\n\nHARGA: $%s\n\nBERAT: %s kg", rawTier:upper(), tostring(rawPrice), rawWeight)
+
+						label.Text = string.format("稀有度: %s\n\n价格: $%s\n\n重量: %s 千克", rawTier:upper(), tostring(rawPrice), rawWeight)
 						label.Parent = billboard
 						billboard.Parent = part
 						table.insert(trackedBillboards, billboard)
@@ -439,7 +589,61 @@ local function cleanOldESP()
 	lastScannedCrystals = {}
 end
 
--- [[ 14. LOGIKA BACKGROUND SEARCH ]]
+local isNoctEspActive = false
+local noctTrackedBillboards = {}
+local noctListenerConnection = nil
+
+local function applyNoctESP(obj)
+	if not obj or not obj.Parent then return end
+	if not (obj:IsA("Model") and obj.Name:lower():find("nocturnite")) then return end
+
+	local function handleNoctVisual()
+		while isNoctEspActive and obj and obj.Parent do
+			for _, part in ipairs(obj:GetDescendants()) do
+				if part:IsA("BasePart") then
+					local espName = "NocturniteESP"
+					if not part:FindFirstChild(espName) then
+						local bb = Instance.new("BillboardGui")
+						bb.Name = espName
+						bb.Size = UDim2.new(0, 160, 0, 40)
+						bb.AlwaysOnTop = true
+						bb.ExtentsOffset = Vector3.new(0, 2, 0)
+						bb.Adornee = part
+
+						local label = Instance.new("TextLabel")
+						label.Size = UDim2.new(1, 0, 1, 0)
+						label.BackgroundTransparency = 1
+						label.TextStrokeTransparency = 0
+						label.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+						label.Font = Enum.Font.SourceSansBold
+						label.TextSize = 13
+						label.TextColor3 = Color3.fromRGB(180, 130, 255)
+						label.Text = "Nocturnite"
+						label.Parent = bb
+						bb.Parent = part
+						table.insert(noctTrackedBillboards, bb)
+					end
+				end
+			end
+			task.wait(0.5)
+		end
+		for _, part in ipairs(obj:GetDescendants()) do
+			if part:IsA("BasePart") then
+				local bb = part:FindFirstChild("NocturniteESP")
+				if bb then bb:Destroy() end
+			end
+		end
+	end
+	task.spawn(handleNoctVisual)
+end
+
+local function cleanNoctESP()
+	if noctListenerConnection then noctListenerConnection:Disconnect() noctListenerConnection = nil end
+	for _, esp in pairs(noctTrackedBillboards) do if esp then esp:Destroy() end end
+	noctTrackedBillboards = {}
+end
+
+-- [[ 14. 后台搜索逻辑 ]]
 local function runBackgroundScanner()
 	for _, descendant in ipairs(Workspace:GetDescendants()) do
 		task.spawn(function()
@@ -466,7 +670,7 @@ Workspace.DescendantAdded:Connect(function(desc)
 	end
 end)
 
--- [[ 15. LOGIKA MENCARI KRISTAL MAHAL (DENGAN FILTER GUNUNG KETAT) ]]
+-- [[ 15. 查找最贵水晶逻辑（带严格山脉过滤） ]]
 local function getRarestActiveCrystal()
 	local highestPrice = -1
 	local chosenPart = nil
@@ -483,14 +687,14 @@ local function getRarestActiveCrystal()
 	return chosenPart, highestPrice
 end
 
--- [[ 16. ENGINE TWEEN BYPASS ANTI-RUBBERBAND ]]
+-- [[ 16. 补偿弹跳绕过传送引擎 ]]
 local function safeTweenTeleport(targetCFrame)
 	local character = player.Character
 	local hrp = character and character:FindFirstChild("HumanoidRootPart")
 	if not hrp or not targetCFrame then return end
-	
+
 	local distance = (hrp.Position - targetCFrame.Position).Magnitude
-	local speed = 350
+	local speed = 200
 	local duration = distance / speed
 	if duration < 0.1 then duration = 0.1 end
 
@@ -498,35 +702,195 @@ local function safeTweenTeleport(targetCFrame)
 	bodyVelocity.Velocity = Vector3.new(0, 0, 0)
 	bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
 	bodyVelocity.Parent = hrp
-	
+
 	local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
 	local tween = TweenService:Create(hrp, tweenInfo, {CFrame = targetCFrame})
-	
+
 	tween:Play()
 	tween.Completed:Wait()
-	
+
 	if bodyVelocity then bodyVelocity:Destroy() end
 	pcall(function() hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0) end)
 end
 
--- [[ 17. AUTO COLLECT PENAMBANG HUB ]]
+-- [[ 17. 自动收集矿工中心 ]]
+
+-- [[ 16.5 传送至指定矿物逻辑 ]]
+local function findMineralByName(searchName)
+	local lowerName = searchName:lower()
+	local bestPart = nil
+	local bestPrice = -1
+	for part, price in pairs(lastScannedCrystals) do
+		if part and part.Parent and part:IsA("BasePart") and isInsideMountain(part) then
+			local nameLower = part.Name:lower()
+			if nameLower:find(lowerName) then
+				if price > bestPrice then
+					bestPrice = price
+					bestPart = part
+				end
+			end
+		end
+	end
+	return bestPart, bestPrice
+end
+
+tpSearchBtn.MouseButton1Click:Connect(function()
+	local searchText = searchInput.Text
+	if searchText == "" then
+		statusLabel.Text = "请先输入矿物名称！"
+		statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+		return
+	end
+
+	local target, price = findMineralByName(searchText)
+	if target and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+		statusLabel.Text = "正在传送到: " .. target.Name .. " ($" .. price .. ")"
+		statusLabel.TextColor3 = Color3.fromRGB(90, 200, 250)
+		task.spawn(function()
+			safeTweenTeleport(target.CFrame * CFrame.new(0, 3, 0))
+			statusLabel.Text = "已成功传送到 " .. target.Name
+			statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+		end)
+	else
+		statusLabel.Text = "未找到包含 \"" .. searchText .. "\" 的矿物！"
+		statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+	end
+end)
+
+local function findModelByName(searchName)
+	local lowerName = searchName:lower()
+	for _, obj in ipairs(Workspace:GetDescendants()) do
+		if obj:IsA("Model") or obj:IsA("BasePart") then
+			if obj.Name:lower():find(lowerName) then
+				local targetPart = nil
+				if obj:IsA("BasePart") then
+					targetPart = obj
+				elseif obj:IsA("Model") then
+					targetPart = obj.PrimaryPart or obj:FindFirstChildOfClass("BasePart")
+				end
+				if targetPart then
+					return obj, targetPart
+				end
+			end
+		end
+	end
+	return nil, nil
+end
+
+tpModelBtn.MouseButton1Click:Connect(function()
+	local searchText = modelSearchInput.Text
+	if searchText == "" then
+		statusLabel.Text = "请先输入模型名称！"
+		statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+		return
+	end
+
+	local model, targetPart = findModelByName(searchText)
+	if model and targetPart and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+		statusLabel.Text = "正在传送到: " .. model.Name
+		statusLabel.TextColor3 = Color3.fromRGB(90, 200, 250)
+		task.spawn(function()
+			safeTweenTeleport(targetPart.CFrame * CFrame.new(0, 3, 0))
+			statusLabel.Text = "已成功传送到 " .. model.Name
+			statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+		end)
+	else
+		statusLabel.Text = "未找到包含 \"" .. searchText .. "\" 的模型！"
+		statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+	end
+end)
+
+pickBtn.MouseButton1Click:Connect(function()
+	isPickMode = not isPickMode
+	if isPickMode then
+		pickBtn.Text = "点选矿物 ●"
+		pickBtn.BackgroundColor3 = Color3.fromRGB(50, 150, 80)
+		isModelPickMode = false
+		modelPickBtn.Text = "点选模型"
+		modelPickBtn.BackgroundColor3 = Color3.fromRGB(80, 70, 50)
+		statusLabel.Text = "状态: 点击矿石自动填入名称"
+		statusLabel.TextColor3 = Color3.fromRGB(100, 240, 120)
+	else
+		pickBtn.Text = "点选矿物"
+		pickBtn.BackgroundColor3 = Color3.fromRGB(90, 110, 85)
+		statusLabel.Text = "状态: 点选模式已关闭"
+		statusLabel.TextColor3 = Color3.fromRGB(240, 100, 90)
+	end
+end)
+
+modelPickBtn.MouseButton1Click:Connect(function()
+	isModelPickMode = not isModelPickMode
+	if isModelPickMode then
+		modelPickBtn.Text = "点选模型 ●"
+		modelPickBtn.BackgroundColor3 = Color3.fromRGB(50, 150, 80)
+		isPickMode = false
+		pickBtn.Text = "点选矿物"
+		pickBtn.BackgroundColor3 = Color3.fromRGB(90, 110, 85)
+		statusLabel.Text = "状态: 点击物体填入模型名称"
+		statusLabel.TextColor3 = Color3.fromRGB(241, 196, 15)
+	else
+		modelPickBtn.Text = "点选模型"
+		modelPickBtn.BackgroundColor3 = Color3.fromRGB(80, 70, 50)
+		statusLabel.Text = "状态: 点选模式已关闭"
+		statusLabel.TextColor3 = Color3.fromRGB(240, 100, 90)
+	end
+end)
+
+local mouse = player:GetMouse()
+mouse.Button1Down:Connect(function()
+	if isPickMode then
+		local target = mouse.Target
+		if target then
+			local nameLower = target.Name:lower()
+			if nameLower:find("crystal") or nameLower:find("ore") or target:GetAttribute("Tier") or target:FindFirstChild("Tier") then
+				searchInput.Text = target.Name
+				statusLabel.Text = "已填入: " .. target.Name
+				statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+			isPickMode = false
+			pickBtn.Text = "点选矿物"
+			pickBtn.BackgroundColor3 = Color3.fromRGB(90, 110, 85)
+			end
+		end
+	elseif isModelPickMode then
+		local target = mouse.Target
+		if target then
+			local modelName = target.Name
+			local parent = target.Parent
+			while parent and parent ~= Workspace do
+				if parent:IsA("Model") then
+					modelName = parent.Name
+					break
+				end
+				parent = parent.Parent
+			end
+			modelSearchInput.Text = modelName
+			statusLabel.Text = "已填入模型: " .. modelName
+			statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+			isModelPickMode = false
+			modelPickBtn.Text = "点选模型"
+			modelPickBtn.BackgroundColor3 = Color3.fromRGB(80, 70, 50)
+		end
+	end
+end)
+
 local isCollectActive = false
+local isScriptAlive = true
 task.spawn(function()
-	while true do
+	while isScriptAlive do
 		if isCollectActive then
 			local crystal, price = getRarestActiveCrystal()
 			local character = player.Character
 			local hrp = character and character:FindFirstChild("HumanoidRootPart")
 
 			if crystal and hrp then
-				statusLabel.Text = "Auto Collect: Traveling to $" .. price
+				statusLabel.Text = "自动收集: 前往 $" .. price
 				statusLabel.TextColor3 = Color3.fromRGB(90, 200, 250)
 				safeTweenTeleport(crystal.CFrame * CFrame.new(0, 3, 0))
-				
-				statusLabel.Text = "Auto Collect: Mining $" .. price
+
+				statusLabel.Text = "自动收集: 开采 $" .. price
 				statusLabel.TextColor3 = Color3.fromRGB(241, 196, 15)
 				task.wait(0.1)
-				
+
 				local tool = character:FindFirstChildOfClass("Tool")
 				if tool then tool:Activate() end
 				for _, remote in ipairs(ReplicatedStorage:GetDescendants()) do
@@ -536,7 +900,7 @@ task.spawn(function()
 				end
 				task.wait(0.3)
 			else
-				statusLabel.Text = "Auto Collect: Mencari Kristal..."
+				statusLabel.Text = "自动收集: 搜索水晶中..."
 				statusLabel.TextColor3 = Color3.fromRGB(180, 190, 175)
 			end
 		end
@@ -544,42 +908,42 @@ task.spawn(function()
 	end
 end)
 
--- [[ 18. EXECUTE TELEPORT TO PLAYER ]]
+-- [[ 18. 执行传送至玩家 ]]
 tpPlayerBtn.MouseButton1Click:Connect(function()
 	if not selectedPlayer or not selectedPlayer.Parent then
-		statusLabel.Text = "❌ Silakan Pilih Nama Player di Menu!"
+		statusLabel.Text = "请先在菜单中选择玩家！"
 		statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
 		return
 	end
 
 	if selectedPlayer.Character and selectedPlayer.Character:FindFirstChild("HumanoidRootPart") then
-		statusLabel.Text = "⚡ Traveling to: " .. selectedPlayer.Name
+		statusLabel.Text = "正在传送到: " .. selectedPlayer.Name
 		statusLabel.TextColor3 = Color3.fromRGB(90, 200, 250)
-		
+
 		task.spawn(function()
 			safeTweenTeleport(selectedPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0, 3, 0))
-			statusLabel.Text = "Sukses TP ke Lokasi " .. selectedPlayer.Name
+			statusLabel.Text = "已成功传送到 " .. selectedPlayer.Name
 			statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
 		end)
 	else
-		statusLabel.Text = "❌ Karakter Player Tersebut Tidak Aktif!"
+		statusLabel.Text = "该玩家角色不在线！"
 		statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
 	end
 end)
 
--- [[ 19. INTERACTION SYSTEM CONNECTIONS ]]
+-- [[ 19. 交互系统连接 ]]
 tpRarestBtn.MouseButton1Click:Connect(function()
 	local target, price = getRarestActiveCrystal()
 	if target and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-		statusLabel.Text = "⚡ Teleporting Smoothly..."
+		statusLabel.Text = "正在平滑传送中..."
 		statusLabel.TextColor3 = Color3.fromRGB(90, 200, 250)
 		task.spawn(function()
 			safeTweenTeleport(target.CFrame * CFrame.new(0, 3, 0))
-			statusLabel.Text = "Sukses Mendarat di Gunung ($" .. price .. ")"
+			statusLabel.Text = "已成功降落山脉 ($" .. price .. ")"
 			statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
 		end)
 	else
-		statusLabel.Text = "Batu berharga gunung belum masuk radar!"
+		statusLabel.Text = "山脉宝石尚未进入雷达范围！"
 		statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
 	end
 end)
@@ -587,12 +951,12 @@ end)
 toggleCollectBtn.MouseButton1Click:Connect(function()
 	isCollectActive = not isCollectActive
 	if isCollectActive then
-		toggleCollectBtn.Text = "AUTO COLLECT: ON"
+		toggleCollectBtn.Text = "自动收集: 开"
 		toggleCollectBtn.BackgroundColor3 = Color3.fromRGB(50, 150, 80)
 	else
-		toggleCollectBtn.Text = "AUTO COLLECT: OFF"
+		toggleCollectBtn.Text = "自动收集: 关"
 		toggleCollectBtn.BackgroundColor3 = Color3.fromRGB(180, 60, 50)
-		statusLabel.Text = "Status: Auto Collect Berhenti"
+		statusLabel.Text = "状态: 自动收集已停止"
 		statusLabel.TextColor3 = Color3.fromRGB(240, 100, 90)
 	end
 end)
@@ -600,30 +964,54 @@ end)
 toggleEspBtn.MouseButton1Click:Connect(function()
 	isEspActive = not isEspActive
 	if isEspActive then
-		toggleEspBtn.Text = "AUTO ESP: ON"
+		toggleEspBtn.Text = "自动透视: 开"
 		toggleEspBtn.BackgroundColor3 = Color3.fromRGB(50, 150, 80)
-		statusLabel.Text = "Status: Radar Dekat Aktif"
+		statusLabel.Text = "状态: 近距离雷达已激活"
 		statusLabel.TextColor3 = Color3.fromRGB(100, 240, 120)
-		
+
 		for _, descendant in ipairs(Workspace:GetDescendants()) do
 			task.spawn(applyESP, descendant)
 		end
-		
+
 		listenerConnection = Workspace.DescendantAdded:Connect(function(descendant)
 			applyESP(descendant)
 		end)
 	else
-		toggleEspBtn.Text = "AUTO ESP: OFF"
+		toggleEspBtn.Text = "自动透视: 关"
 		toggleEspBtn.BackgroundColor3 = Color3.fromRGB(180, 60, 50)
-		statusLabel.Text = "Status: ESP Dinonaktifkan"
+		statusLabel.Text = "状态: 透视已关闭"
 		statusLabel.TextColor3 = Color3.fromRGB(240, 100, 90)
 		cleanOldESP()
 	end
 end)
 
--- [[ 20. CHROMA RGB PELANGI EFFECT ]]
-local rgbObjects = {mainStroke, btnStroke, tpStroke, collectStroke, dropMainStroke, tpPlayStroke, guiBtnStroke}
-RunService.RenderStepped:Connect(function()
+noctEspBtn.MouseButton1Click:Connect(function()
+	isNoctEspActive = not isNoctEspActive
+	if isNoctEspActive then
+		noctEspBtn.Text = "Nocturnite: 开"
+		noctEspBtn.BackgroundColor3 = Color3.fromRGB(80, 50, 120)
+		statusLabel.Text = "状态: Nocturnite透视已激活"
+		statusLabel.TextColor3 = Color3.fromRGB(180, 130, 255)
+
+		for _, descendant in ipairs(Workspace:GetDescendants()) do
+			task.spawn(applyNoctESP, descendant)
+		end
+
+		noctListenerConnection = Workspace.DescendantAdded:Connect(function(desc)
+			applyNoctESP(desc)
+		end)
+	else
+		noctEspBtn.Text = "透视Nocturnite"
+		noctEspBtn.BackgroundColor3 = Color3.fromRGB(120, 60, 140)
+		statusLabel.Text = "状态: Nocturnite透视已关闭"
+		statusLabel.TextColor3 = Color3.fromRGB(240, 100, 90)
+		cleanNoctESP()
+	end
+end)
+
+-- [[ 20. 彩虹RGB特效 ]]
+local rgbObjects = {mainStroke, btnStroke, noctEspBtnStroke, tpStroke, collectStroke, tpSearchStroke, pickBtnStroke, modelPickBtnStroke, tpModelBtnStroke, dropMainStroke, tpPlayStroke, guiBtnStroke}
+local rgbConnection = RunService.RenderStepped:Connect(function()
 	local totalObjects = #rgbObjects
 	local timeTick = tick() * 0.15
 	for idx, strokeObject in ipairs(rgbObjects) do
@@ -633,3 +1021,29 @@ RunService.RenderStepped:Connect(function()
 		end
 	end
 end)
+
+local bgScannerConnection = Workspace.DescendantAdded:Connect(function(desc)
+	if desc:IsA("BasePart") then
+		task.wait(0.05)
+		local nameLower = desc.Name:lower()
+		if nameLower:find("crystal") or nameLower:find("ore") or desc:GetAttribute("Tier") then
+			local _, _, rawPrice, _ = extractCrystalData(desc)
+			if rawPrice > 0 then lastScannedCrystals[desc] = rawPrice end
+		end
+	end
+end)
+
+-- [[ 21. 全局清理函数 ]]
+_G.XhiinnGIO_Cleanup = function()
+	isScriptAlive = false
+	isEspActive = false
+	isNoctEspActive = false
+	isCollectActive = false
+	if listenerConnection then listenerConnection:Disconnect() end
+	if noctListenerConnection then noctListenerConnection:Disconnect() end
+	if rgbConnection then rgbConnection:Disconnect() end
+	if bgScannerConnection then bgScannerConnection:Disconnect() end
+	cleanOldESP()
+	cleanNoctESP()
+	if mountainGui then mountainGui:Destroy() end
+end
