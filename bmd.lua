@@ -10,6 +10,7 @@ local whitelist = {
     "luoyj1055",
     "qin147807",
     "xver0921",
+    "lingzijiangya",
 }
 
 local function isWhitelisted(name)
