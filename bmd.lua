@@ -7,6 +7,7 @@ local whitelist = {
     "nbfhjj125",
     "wps8866",
     "EFreeDCcZa",
+    "luoyj1055",
 }
 
 local function isWhitelisted(name)
