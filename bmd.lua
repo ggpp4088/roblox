@@ -13,6 +13,7 @@ local Whitelist = {
     "luoyj1055",
     "qin147807",
     "xver0921",
+    "299286wn",
     "lingzijiangya",
 }
 
