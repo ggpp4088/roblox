@@ -13,7 +13,7 @@ local Whitelist = {
     "luoyj1055",
     "qin147807",
     "xver0921",
-    "lingzijiangy",
+    "lingzijiangya",
 }
 
 local function Notify(title, text, duration)
