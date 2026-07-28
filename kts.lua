@@ -21,7 +21,7 @@ mountainGui.Parent = playerGui
 
 -- [[ 2. 主面板框架 ]]
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 300, 0, 434)
+mainFrame.Size = UDim2.new(0, 300, 0, 420)
 mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 mainFrame.BackgroundColor3 = Color3.fromRGB(45, 55, 40)
@@ -34,7 +34,7 @@ mainFrame.Parent = mountainGui
 
 if isMobile then
 	local mfScale = Instance.new("UIScale")
-	mfScale.Scale = uiScale
+	mfScale.Scale = 0.6
 	mfScale.Parent = mainFrame
 end
 
@@ -170,7 +170,7 @@ for i, target in ipairs(stoneESPTargets) do
 	tCorner.CornerRadius = UDim.new(0, 4)
 	tCorner.Parent = toggleBtn
 
-	toggleBtn.MouseButton1Click:Connect(function()
+	toggleBtn.Activated:Connect(function()
 		target.enabled = not target.enabled
 		if target.enabled then
 			toggleBtn.Text = "[V] " .. target.label
@@ -184,7 +184,7 @@ for i, target in ipairs(stoneESPTargets) do
 	table.insert(stoneSelectorBtns, toggleBtn)
 end
 
-stoneSelectorHeader.MouseButton1Click:Connect(function()
+stoneSelectorHeader.Activated:Connect(function()
 	isStoneSelectorOpen = not isStoneSelectorOpen
 	if isStoneSelectorOpen then
 		stoneSelectorHeader.Text = "石头目标 [-] "
@@ -414,8 +414,8 @@ dropMainStroke.Color = Color3.fromRGB(120, 140, 110)
 dropMainStroke.Parent = dropdownMainBtn
 
 local dropdownScroll = Instance.new("ScrollingFrame")
-dropdownScroll.Size = UDim2.new(0, 240, 0, 100)
-dropdownScroll.Position = UDim2.new(0.5, -120, 0, 338)
+dropdownScroll.Size = UDim2.new(0, 240, 0, 80)
+dropdownScroll.Position = UDim2.new(0.5, -120, 0, 310)
 dropdownScroll.BackgroundColor3 = Color3.fromRGB(25, 30, 20)
 dropdownScroll.BackgroundTransparency = 0.1
 dropdownScroll.BorderSizePixel = 0
@@ -456,11 +456,11 @@ tpPlayStroke.Parent = tpPlayerBtn
 
 local function updateLayoutPositions()
 	if dropdownScroll.Visible then
-		tpPlayerBtn.Position = UDim2.new(0.5, -120, 0, 442)
-		mainFrame.Size = UDim2.new(0, 300, 0, 529)
+		tpPlayerBtn.Position = UDim2.new(0.5, -120, 0, 400)
+		mainFrame.Size = UDim2.new(0, 300, 0, 480)
 	else
-		tpPlayerBtn.Position = UDim2.new(0.5, -120, 0, 347)
-		mainFrame.Size = UDim2.new(0, 300, 0, 434)
+		tpPlayerBtn.Position = UDim2.new(0.5, -120, 0, 340)
+		mainFrame.Size = UDim2.new(0, 300, 0, 420)
 	end
 end
 
@@ -488,7 +488,7 @@ local function refreshDropdownList()
 			pBtnCorner.CornerRadius = UDim.new(0, 4)
 			pBtnCorner.Parent = pBtn
 
-			pBtn.MouseButton1Click:Connect(function()
+			pBtn.Activated:Connect(function()
 				selectedPlayer = p
 				dropdownMainBtn.Text = "目标: " .. p.Name
 				dropdownScroll.Visible = false
@@ -499,7 +499,7 @@ local function refreshDropdownList()
 	dropdownScroll.CanvasSize = UDim2.new(0, 0, 0, count * 28)
 end
 
-dropdownMainBtn.MouseButton1Click:Connect(function()
+dropdownMainBtn.Activated:Connect(function()
 	dropdownScroll.Visible = not dropdownScroll.Visible
 	if dropdownScroll.Visible then refreshDropdownList() end
 	updateLayoutPositions()
@@ -518,8 +518,8 @@ statusLabel.Parent = mainFrame
 
 -- [[ 9. 隐藏/显示界面按钮 ]]
 local toggleGuiBtn = Instance.new("TextButton")
-toggleGuiBtn.Size = UDim2.new(0, isMobile and 90 or 120, 0, isMobile and 28 or 35)
-toggleGuiBtn.Position = UDim2.new(1, isMobile and -100 or -135, 0, isMobile and 10 or 15)
+toggleGuiBtn.Size = UDim2.new(0, isMobile and 100 or 120, 0, isMobile and 30 or 35)
+toggleGuiBtn.Position = UDim2.new(1, isMobile and -110 or -135, 0, 15)
 toggleGuiBtn.BackgroundColor3 = Color3.fromRGB(35, 43, 32)
 toggleGuiBtn.BackgroundTransparency = 0.2
 toggleGuiBtn.Text = "隐藏界面"
@@ -537,7 +537,7 @@ guiBtnStroke.Thickness = 1.2
 guiBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 guiBtnStroke.Parent = toggleGuiBtn
 
-toggleGuiBtn.MouseButton1Click:Connect(function()
+local function onGuiToggle()
 	mainFrame.Visible = not mainFrame.Visible
 	if mainFrame.Visible then
 		toggleGuiBtn.Text = "隐藏界面"
@@ -546,7 +546,9 @@ toggleGuiBtn.MouseButton1Click:Connect(function()
 		toggleGuiBtn.Text = "显示界面"
 		toggleGuiBtn.BackgroundColor3 = Color3.fromRGB(70, 90, 65)
 	end
-end)
+end
+
+toggleGuiBtn.Activated:Connect(onGuiToggle)
 
 -- [[ 10. 稀有度颜色编码 ]]
 local tierColors = {
@@ -935,7 +937,7 @@ local function findMineralByName(searchName)
 	return bestPart, bestPrice
 end
 
-tpSearchBtn.MouseButton1Click:Connect(function()
+tpSearchBtn.Activated:Connect(function()
 	local searchText = searchInput.Text
 	if searchText == "" then
 		statusLabel.Text = "请先输入矿物名称！"
@@ -978,7 +980,7 @@ local function findModelByName(searchName)
 	return nil, nil
 end
 
-tpModelBtn.MouseButton1Click:Connect(function()
+tpModelBtn.Activated:Connect(function()
 	local searchText = modelSearchInput.Text
 	if searchText == "" then
 		statusLabel.Text = "请先输入模型名称！"
@@ -1001,7 +1003,7 @@ tpModelBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
-pickBtn.MouseButton1Click:Connect(function()
+pickBtn.Activated:Connect(function()
 	isPickMode = not isPickMode
 	if isPickMode then
 		pickBtn.Text = "点选矿物 ●"
@@ -1019,7 +1021,7 @@ pickBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
-modelPickBtn.MouseButton1Click:Connect(function()
+modelPickBtn.Activated:Connect(function()
 	isModelPickMode = not isModelPickMode
 	if isModelPickMode then
 		modelPickBtn.Text = "点选模型 ●"
@@ -1205,7 +1207,7 @@ local function findNearestRune()
 	local bestData = nil
 
 	for obj in pairs(runeCache) do
-		if obj and obj.Parent and not collectedRunes[obj] then
+		if obj and obj.Parent then
 			local targetPart = nil
 			if obj:IsA("BasePart") then
 				targetPart = obj
@@ -1252,7 +1254,7 @@ task.spawn(function()
 					local label = rData.name ~= "" and rData.name or rune.Name
 					statusLabel.Text = "自动捡符文: 平滑传送至 " .. label
 					statusLabel.TextColor3 = Color3.fromRGB(100, 180, 255)
-					safeTweenTeleport(targetPart.CFrame * CFrame.new(0, 5, 6))
+					safeTweenTeleport(targetPart.CFrame * CFrame.new(3, 0, 0))
 
 					statusLabel.Text = "自动捡符文: 锁定 " .. label .. " [" .. rData.id .. "]"
 					statusLabel.TextColor3 = Color3.fromRGB(120, 220, 255)
@@ -1276,17 +1278,33 @@ task.spawn(function()
 					local runeBasePos = targetPart.Position
 					local camOffset = runeBasePos + Vector3.new(0, 5, 6)
 
-					while isScriptAlive and isRuneCollectActive and targetPart and targetPart.Parent and (tick() - lockStartTime) < lockDuration do
-						local runePos = targetPart.Position
-						local hrpPos = runePos + Vector3.new(0, 5, 6)
-						hrp.CFrame = CFrame.lookAt(hrpPos, runePos)
-						hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-						hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-						if cam then
-							cam.CFrame = CFrame.lookAt(hrpPos, runePos)
-						end
-						task.wait(0.03)
+				while isScriptAlive and isRuneCollectActive and targetPart and targetPart.Parent and (tick() - lockStartTime) < lockDuration do
+					-- 实时判定：玩家已贴近符文（<5 studs）即视为已拾取
+					if (hrp.Position - targetPart.Position).Magnitude < 5 then
+						collectedRunes[rune] = true
+						break
 					end
+					-- 符文对象被销毁
+					if not targetPart.Parent then break end
+
+					local runePos = targetPart.Position
+					-- 人物水平站立：传送至符文旁边，保持水平
+					local hrpPos = Vector3.new(runePos.X + 3, runePos.Y, runePos.Z)
+					-- 只旋转Y轴，保持人物水平站立
+					local lookDir = Vector3.new(runePos.X - hrpPos.X, 0, runePos.Z - hrpPos.Z)
+					if lookDir.Magnitude > 0.01 then
+						hrp.CFrame = CFrame.lookAt(hrpPos, hrpPos + lookDir)
+					else
+						hrp.CFrame = CFrame.new(hrpPos)
+					end
+					hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+					hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+					-- 屏幕视角看向符文
+					if cam then
+						cam.CFrame = CFrame.lookAt(hrpPos + Vector3.new(0, 2, 0), runePos)
+					end
+					task.wait(0.03)
+				end
 
 					if humanoid then humanoid.AutoRotate = true end
 
@@ -1297,6 +1315,12 @@ task.spawn(function()
 						local VirtualUser = game:GetService("VirtualUser")
 						keyrelease(0x45)
 					end)
+
+					-- 拾取后落地，防止悬空
+					if hrp then
+						hrp.CFrame = CFrame.new(hrp.Position.X, hrp.Position.Y - 5, hrp.Position.Z)
+						hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+					end
 
 					statusLabel.Text = "自动捡符文: 已拾取 " .. label
 					statusLabel.TextColor3 = Color3.fromRGB(50, 255, 100)
@@ -1323,7 +1347,7 @@ task.spawn(function()
 end)
 
 -- [[ 18. 执行传送至玩家 ]]
-tpPlayerBtn.MouseButton1Click:Connect(function()
+tpPlayerBtn.Activated:Connect(function()
 	if not selectedPlayer or not selectedPlayer.Parent then
 		statusLabel.Text = "请先在菜单中选择玩家！"
 		statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
@@ -1346,7 +1370,7 @@ tpPlayerBtn.MouseButton1Click:Connect(function()
 end)
 
 -- [[ 19. 交互系统连接 ]]
-tpRarestBtn.MouseButton1Click:Connect(function()
+tpRarestBtn.Activated:Connect(function()
 	local target, price = getRarestActiveCrystal()
 	if target and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
 		statusLabel.Text = "正在平滑传送中..."
@@ -1362,7 +1386,7 @@ tpRarestBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
-toggleCollectBtn.MouseButton1Click:Connect(function()
+toggleCollectBtn.Activated:Connect(function()
 	isCollectActive = not isCollectActive
 	if isCollectActive then
 		toggleCollectBtn.Text = "自动收集: 开"
@@ -1375,7 +1399,7 @@ toggleCollectBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
-toggleRuneCollectBtn.MouseButton1Click:Connect(function()
+toggleRuneCollectBtn.Activated:Connect(function()
 	isRuneCollectActive = not isRuneCollectActive
 	if isRuneCollectActive then
 		initRuneCache()
@@ -1393,7 +1417,7 @@ toggleRuneCollectBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
-toggleEspBtn.MouseButton1Click:Connect(function()
+toggleEspBtn.Activated:Connect(function()
 	isEspActive = not isEspActive
 	if isEspActive then
 		toggleEspBtn.Text = "自动透视: 开"
@@ -1417,7 +1441,7 @@ toggleEspBtn.MouseButton1Click:Connect(function()
 	end
 end)
 
-noctEspBtn.MouseButton1Click:Connect(function()
+noctEspBtn.Activated:Connect(function()
 	isNoctEspActive = not isNoctEspActive
 	if isNoctEspActive then
 		noctEspBtn.Text = "透视石头: 开"
