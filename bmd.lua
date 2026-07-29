@@ -1,7 +1,6 @@
 local Players = game:GetService("Players")
 local HttpService = game:GetService("HttpService")
 
--- ===== HTTP 请求封装 =====
 local function HttpGet(url)
     local success, result
 
@@ -34,7 +33,7 @@ end
 -- ===== Base64 解码（兼容 GitHub）=====
 local b64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 local function base64decode(str)
-    str = str:gsub("%s+", "") -- ✅ 关键：去掉所有换行
+    str = str:gsub("%s+", "") 
     str = str:gsub("=", "")
     local out, n = {}, 1
     for i = 1, #str, 4 do
@@ -58,14 +57,11 @@ local function base64decode(str)
     return table.concat(out)
 end
 
--- ===== GitHub 文件读取 =====
 local function FetchFromGitHub(path)
-    -- 优先 raw（稳定）
     local rawURL = "https://raw.githubusercontent.com/ggpp4088/roblox/main/" .. path
     local content = HttpGet(rawURL)
     if content then return content end
 
-    -- 兜底 API
     local apiURL = "https://api.github.com/repos/ggpp4088/roblox/contents/" .. path
     local json = HttpGet(apiURL)
     if not json then return nil end
@@ -81,7 +77,6 @@ local function FetchFromGitHub(path)
     return nil
 end
 
--- ===== 白名单检测 =====
 local WhitelistCache = nil
 local function IsWhitelisted()
     if WhitelistCache ~= nil then return WhitelistCache end
@@ -106,7 +101,6 @@ local function IsWhitelisted()
     return false
 end
 
--- ===== 执行 =====
 if IsWhitelisted() then
     local code = FetchFromGitHub("bmd.lua")
     if code then
