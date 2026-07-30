@@ -19,6 +19,20 @@ mountainGui.Name = "XhiinnGIOMountainOreSystemV73"
 mountainGui.ResetOnSpawn = false
 mountainGui.Parent = playerGui
 
+-- [[ 1.5 创建平台 ]]
+task.spawn(function()
+	local platform = Instance.new("Part")
+	platform.Name = "XhiinnPlatform"
+	platform.Anchored = true
+	platform.CanCollide = true
+	platform.Size = Vector3.new(1075, 2, 906)
+	platform.Position = Vector3.new(-22.5, 11, 447)
+	platform.Color = Color3.fromRGB(60, 75, 55)
+	platform.Material = Enum.Material.SmoothPlastic
+	platform.Transparency = 0.3
+	platform.Parent = Workspace
+end)
+
 -- [[ 2. 主面板框架 ]]
 local mainFrame = Instance.new("Frame")
 mainFrame.Size = UDim2.new(0, 300, 0, 420)
@@ -104,6 +118,7 @@ local stoneESPTargets = {
 	{key = "gildrite", label = "Gildrite", color = Color3.fromRGB(255, 200, 50), enabled = true},
 	{key = "mossite", label = "Mossite", color = Color3.fromRGB(80, 200, 80), enabled = true},
 	{key = "voltite", label = "Voltite", color = Color3.fromRGB(0, 220, 255), enabled = true},
+	{key = "rimeveil", label = "Rimeveil", color = Color3.fromRGB(200, 220, 255), enabled = true},
 }
 
 local isStoneSelectorOpen = false
@@ -739,9 +754,9 @@ local function applyNoctESP(obj)
 
 	local targetModel = nil
 	local modelLabel = ""
-	if obj:IsA("Model") and (obj.Name:lower():find("nocturnite") or obj.Name:lower():find("gildrite") or obj.Name:lower():find("mossite") or obj.Name:lower():find("voltite")) then
+	if obj:IsA("Model") and (obj.Name:lower():find("nocturnite") or obj.Name:lower():find("gildrite") or obj.Name:lower():find("mossite") or obj.Name:lower():find("voltite") or obj.Name:lower():find("rimeveil")) then
 		targetModel = obj
-	elseif obj:IsA("BasePart") and obj.Parent:IsA("Model") and (obj.Parent.Name:lower():find("nocturnite") or obj.Parent.Name:lower():find("gildrite") or obj.Parent.Name:lower():find("mossite") or obj.Parent.Name:lower():find("voltite")) then
+	elseif obj:IsA("BasePart") and obj.Parent:IsA("Model") and (obj.Parent.Name:lower():find("nocturnite") or obj.Parent.Name:lower():find("gildrite") or obj.Parent.Name:lower():find("mossite") or obj.Parent.Name:lower():find("voltite") or obj.Parent.Name:lower():find("rimeveil")) then
 		targetModel = obj.Parent
 	end
 	if not targetModel then return end
@@ -752,6 +767,8 @@ local function applyNoctESP(obj)
 		modelLabel = "Mossite"
 	elseif targetModel.Name:lower():find("voltite") then
 		modelLabel = "Voltite"
+	elseif targetModel.Name:lower():find("rimeveil") then
+		modelLabel = "Rimeveil"
 	else
 		modelLabel = "Nocturnite"
 	end
@@ -765,6 +782,8 @@ local function applyNoctESP(obj)
 		noctColor = Color3.fromRGB(80, 200, 80)
 	elseif modelLabel == "Voltite" then
 		noctColor = Color3.fromRGB(0, 220, 255)
+	elseif modelLabel == "Rimeveil" then
+		noctColor = Color3.fromRGB(200, 220, 255)
 	else
 		noctColor = Color3.fromRGB(180, 130, 255)
 	end
@@ -1256,77 +1275,78 @@ task.spawn(function()
 					statusLabel.TextColor3 = Color3.fromRGB(100, 180, 255)
 					safeTweenTeleport(targetPart.CFrame * CFrame.new(3, 0, 0))
 
-					statusLabel.Text = "自动捡符文: 锁定 " .. label .. " [" .. rData.id .. "]"
-					statusLabel.TextColor3 = Color3.fromRGB(120, 220, 255)
-
-					local lockDuration = 3.0
-					local lockStartTime = tick()
-
-					local virtualInput = game:GetService("VirtualInputManager")
-					pcall(function()
-						virtualInput:SendKeyEvent(true, Enum.KeyCode.E, false, game)
-					end)
-					pcall(function()
-						local VirtualUser = game:GetService("VirtualUser")
-						VirtualUser:CaptureController()
-						keypress(0x45)
-					end)
-
-					local humanoid = character:FindFirstChildOfClass("Humanoid")
-					if humanoid then humanoid.AutoRotate = false end
-					local cam = Workspace.CurrentCamera
-					local runeBasePos = targetPart.Position
-					local camOffset = runeBasePos + Vector3.new(0, 5, 6)
-
-				while isScriptAlive and isRuneCollectActive and targetPart and targetPart.Parent and (tick() - lockStartTime) < lockDuration do
-					-- 实时判定：玩家已贴近符文（<5 studs）即视为已拾取
-					if (hrp.Position - targetPart.Position).Magnitude < 5 then
+					-- 传送到达后，锁定符文并长按E
+					if not targetPart.Parent then
 						collectedRunes[rune] = true
-						break
-					end
-					-- 符文对象被销毁
-					if not targetPart.Parent then break end
-
-					local runePos = targetPart.Position
-					-- 人物水平站立：传送至符文旁边，保持水平
-					local hrpPos = Vector3.new(runePos.X + 3, runePos.Y, runePos.Z)
-					-- 只旋转Y轴，保持人物水平站立
-					local lookDir = Vector3.new(runePos.X - hrpPos.X, 0, runePos.Z - hrpPos.Z)
-					if lookDir.Magnitude > 0.01 then
-						hrp.CFrame = CFrame.lookAt(hrpPos, hrpPos + lookDir)
+						runeCache[rune] = nil
 					else
-						hrp.CFrame = CFrame.new(hrpPos)
+						statusLabel.Text = "自动捡符文: 锁定 " .. label .. " [" .. rData.id .. "]"
+						statusLabel.TextColor3 = Color3.fromRGB(120, 220, 255)
+
+						local humanoid = character:FindFirstChildOfClass("Humanoid")
+						if humanoid then humanoid.AutoRotate = false end
+						local cam = Workspace.CurrentCamera
+
+						-- 按住E
+						pcall(function()
+							local vu = game:GetService("VirtualUser")
+							vu:CaptureController()
+						end)
+						pcall(function()
+							local vim = game:GetService("VirtualInputManager")
+							vim:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+						end)
+						pcall(function() keypress(0x45) end)
+						task.wait(0.1)
+
+						-- 在符文附近长按E，视角看向符文，符文消失则取消
+						while isScriptAlive and isRuneCollectActive and targetPart and targetPart.Parent do
+							local runePos = targetPart.Position
+							-- 人物水平站立在符文旁边
+							local hrpPos = Vector3.new(runePos.X + 3, runePos.Y, runePos.Z)
+							local lookDir = Vector3.new(runePos.X - hrpPos.X, 0, runePos.Z - hrpPos.Z)
+							if lookDir.Magnitude > 0.01 then
+								hrp.CFrame = CFrame.lookAt(hrpPos, hrpPos + lookDir)
+							else
+								hrp.CFrame = CFrame.new(hrpPos)
+							end
+							hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+							hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
+							-- 屏幕视角看向符文
+							if cam then
+								cam.CFrame = CFrame.lookAt(hrpPos + Vector3.new(0, 2, 0), runePos)
+							end
+							task.wait(0.03)
+						end
+
+						-- 释放E
+						pcall(function()
+							local vim = game:GetService("VirtualInputManager")
+							vim:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+						end)
+						pcall(function() keyrelease(0x45) end)
+
+						if humanoid then humanoid.AutoRotate = true end
+
+						-- 拾取后落地
+						if hrp then
+							hrp.CFrame = CFrame.new(hrp.Position.X, hrp.Position.Y - 5, hrp.Position.Z)
+							hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+						end
+
+						if targetPart and targetPart.Parent then
+							-- 符文还在 = 拾取成功
+							statusLabel.Text = "自动捡符文: 已拾取 " .. label
+							statusLabel.TextColor3 = Color3.fromRGB(50, 255, 100)
+						else
+							-- 符文消失 = 拾取成功（被别人捡了也算）
+							statusLabel.Text = "自动捡符文: " .. label .. " 已消失"
+							statusLabel.TextColor3 = Color3.fromRGB(255, 200, 50)
+						end
+						collectedRunes[rune] = true
+						runeCache[rune] = nil
+						task.wait(0.3)
 					end
-					hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-					hrp.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-					-- 屏幕视角看向符文
-					if cam then
-						cam.CFrame = CFrame.lookAt(hrpPos + Vector3.new(0, 2, 0), runePos)
-					end
-					task.wait(0.03)
-				end
-
-					if humanoid then humanoid.AutoRotate = true end
-
-					pcall(function()
-						virtualInput:SendKeyEvent(false, Enum.KeyCode.E, false, game)
-					end)
-					pcall(function()
-						local VirtualUser = game:GetService("VirtualUser")
-						keyrelease(0x45)
-					end)
-
-					-- 拾取后落地，防止悬空
-					if hrp then
-						hrp.CFrame = CFrame.new(hrp.Position.X, hrp.Position.Y - 5, hrp.Position.Z)
-						hrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-					end
-
-					statusLabel.Text = "自动捡符文: 已拾取 " .. label
-					statusLabel.TextColor3 = Color3.fromRGB(50, 255, 100)
-					collectedRunes[rune] = true
-					runeCache[rune] = nil
-					task.wait(0.3)
 				end
 			else
 				local lowestZ = 99999
@@ -1450,13 +1470,13 @@ noctEspBtn.Activated:Connect(function()
 		statusLabel.TextColor3 = Color3.fromRGB(180, 130, 255)
 
 		for _, descendant in ipairs(Workspace:GetDescendants()) do
-			if descendant:IsA("Model") and (descendant.Name:lower():find("nocturnite") or descendant.Name:lower():find("gildrite") or descendant.Name:lower():find("mossite") or descendant.Name:lower():find("voltite")) then
+			if descendant:IsA("Model") and (descendant.Name:lower():find("nocturnite") or descendant.Name:lower():find("gildrite") or descendant.Name:lower():find("mossite") or descendant.Name:lower():find("voltite") or descendant.Name:lower():find("rimeveil")) then
 				task.spawn(applyNoctESP, descendant)
 			end
 		end
 
 		noctListenerConnection = Workspace.DescendantAdded:Connect(function(desc)
-			if desc:IsA("Model") and (desc.Name:lower():find("nocturnite") or desc.Name:lower():find("gildrite") or desc.Name:lower():find("mossite") or desc.Name:lower():find("voltite")) then
+			if desc:IsA("Model") and (desc.Name:lower():find("nocturnite") or desc.Name:lower():find("gildrite") or desc.Name:lower():find("mossite") or desc.Name:lower():find("voltite") or desc.Name:lower():find("rimeveil")) then
 				applyNoctESP(desc)
 			end
 		end)
@@ -1509,5 +1529,8 @@ _G.XhiinnGIO_Cleanup = function()
 	cleanOldESP()
 	cleanNoctESP()
 	for _, t in ipairs(stoneESPTargets) do t.enabled = true end
+	-- 移除平台
+	local plat = Workspace:FindFirstChild("XhiinnPlatform")
+	if plat then plat:Destroy() end
 	if mountainGui then mountainGui:Destroy() end
 end
