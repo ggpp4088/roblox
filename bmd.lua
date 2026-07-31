@@ -21,6 +21,7 @@ local Whitelist = {
     "eeuv04",
     "347688zzz",
     "lllppp575",
+    "OrangeSaltoo",
 }
 
 local function Notify(title, text, duration)
