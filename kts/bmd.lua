@@ -9,7 +9,7 @@ local Whitelist = {
     "ggpp_cc",
     "cwm204518",
     "299286wn",
-    "aengkk",
+    "Aengkk",
 }
 
 local function Notify(title, text, duration)
