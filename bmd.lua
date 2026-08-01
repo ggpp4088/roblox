@@ -22,7 +22,7 @@ local Whitelist = {
     "347688zzz",
     "lllppp575",
     "OrangeSaltoo",
-    "ASE2013122",
+    "ggggg12345078",
     "Octian_0",
     "qin1478",
 }
