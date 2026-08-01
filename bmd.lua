@@ -24,6 +24,7 @@ local Whitelist = {
     "OrangeSaltoo",
     "ASE2013122",
     "Octian_0",
+    "qin1478",
 }
 
 local function Notify(title, text, duration)
