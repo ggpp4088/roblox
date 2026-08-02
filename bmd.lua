@@ -20,7 +20,7 @@ local Whitelist = {
     "mmnfsch",
     "eeuv04",
     "347688zzz",
-    "lllppp575",
+    "ppplll575",
     "ggggg12345078",
     "Octian_0",
     "qin1478",
