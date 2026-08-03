@@ -13,6 +13,7 @@ local Whitelist = {
     "ASE2013122",
     "347688zzz",
     "qweasdzxc23149",
+    "wlail21",
 }
 
 local function Notify(title, text, duration)
