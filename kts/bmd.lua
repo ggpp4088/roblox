@@ -14,6 +14,7 @@ local Whitelist = {
     "347688zzz",
     "qweasdzxc23149",
     "wlail21",
+    "K1Qiuu",
     "zxcvbnm1238913",
 }
 
