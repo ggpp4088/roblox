@@ -7,6 +7,7 @@ local Username = LocalPlayer.Name
 local Whitelist = {
     "ggpp_xx",
     "ggpp_cc",
+    "HN_xunan",
     "Yingzilang012831",
     "Yu_chenQWQ",
     "MontellaGreat",
