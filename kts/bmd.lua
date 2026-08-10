@@ -8,6 +8,7 @@ local Whitelist = {
     "ggpp_xx",
     "woshishuai7",
     "ggpp_cc",
+    "wpj2006",
     "wfy919191",
     "wzdjxs",
     "jfjgfhjjdtf",
