@@ -27,7 +27,7 @@ local Whitelist = {
     "ggggg12345078",
     "Octian_0",
     "qin1478",
-    "xiaohao76254",
+    "sjdosoow",
     "baixqwg",
     "xiaomingyy",
 }
