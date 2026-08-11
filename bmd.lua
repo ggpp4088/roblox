@@ -8,6 +8,7 @@ local Whitelist = {
     "ggpp_xx",
     "ggpp_cc",
     "xiaoqian_64",
+    "trustlins",
     "jjjhdgy3",
     "MontellaGreat",
     "917813iqoo9",
