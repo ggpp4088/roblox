@@ -278,6 +278,13 @@ local function translateText(text)
 end
 local function translateGUI(gui)
     if (gui:IsA("TextLabel") or gui:IsA("TextButton") or gui:IsA("TextBox")) then
+        local ancestor = gui
+        while ancestor and ancestor.Parent do
+            if ancestor.Name == "RobloxGui" or ancestor.Name == "CoreScripts" then
+                return
+            end
+            ancestor = ancestor.Parent
+        end
         pcall(function()
             local text = gui.Text
             if text and text ~= "" then
