@@ -212,10 +212,10 @@ local SUFFIXES = { "", "k", "M", "B", "T", "Qa" }
 local PARSE_MULTIPLIERS = { k = 1e3, m = 1e6, b = 1e9, t = 1e12, qa = 1e15 }
 local CONTAINER_NAMES = { "DroppedCrystals", "Crystals" }
 
-local repo = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
-local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
-local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
-local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
+local repo = "https://raw.githubusercontent.com/ggpp4088/roblox/main/"
+local Library = loadstring(game:HttpGet(repo .. "Obsidian/Library.lua"))()
+local SaveManager = loadstring(game:HttpGet(repo .. "Obsidian/addons/SaveManager.lua"))()
+local ThemeManager = loadstring(game:HttpGet(repo .. "Obsidian/addons/ThemeManager.lua"))()
 
 Library.ForceCheckbox = false
 Library.ShowToggleFrameInKeybinds = true
