@@ -6,6 +6,8 @@ local Username = LocalPlayer.Name
 
 local Whitelist = {
     "ggpp_xx",
+    "ggpp_cc",
+    "haolangxu114514",
 }
 
 local function Notify(title, text, duration)
