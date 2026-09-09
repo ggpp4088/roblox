@@ -8,6 +8,7 @@ local Whitelist = {
     "ggpp_xx",
     "GoodnightMoon520",
     "JayLing_oura",
+    "Fotow555",
 }
 
 local function Notify(title, text, duration)
