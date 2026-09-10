@@ -8,7 +8,7 @@ local Whitelist = {
     "ggpp_xx",
     "candylingzi",
     "GW_Haoxuan",
-    "CE66687",
+    "jntmqwqyyds",
     "Baizimo233",
     "lingzijiangya",
     "zhangyianchun",
