@@ -8,6 +8,7 @@ local Whitelist = {
     "ggpp_xx",
     "GoodnightMoon520",
     "hshshjsjsi_9",
+    "t123456t009",
     "yecheng02",
     "JayLing_oura",
     "Fotow555",
