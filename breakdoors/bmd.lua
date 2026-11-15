@@ -8,6 +8,7 @@ local Whitelist = {
     "ggpp_xx",
     "Gczeevg",
     "gjeevhbd682",
+    "jiuyouovo",
     "gjeevhbd68",
     "MCWDSJ",
 }
